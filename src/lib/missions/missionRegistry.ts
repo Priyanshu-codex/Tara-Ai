@@ -5,7 +5,23 @@ import { classMissionsList } from "./classMissionsData";
 import { getCurriculumTier, CURRICULUM_TIERS } from "./classCurriculum";
 import type { World, CurriculumTierId } from "@/lib/types";
 
-export type MissionType = "video" | "pattern" | "experiment" | "quiz" | "challenge";
+import type { SearchingGameConfig } from "@/components/games/SearchingAlgorithmGame";
+import type { SortingAlgoConfig } from "@/components/games/SortingAlgorithmGame";
+import type { ClassificationConfig } from "@/components/games/ClassificationSortingGame";
+import type { DebuggingLogicConfig } from "@/components/games/DebuggingLogicGame";
+import type { PatternPuzzleConfig } from "@/components/games/PatternPuzzleGame";
+import type { AITrainingConfig } from "@/components/games/AITrainingSimulatorGame";
+
+export type MissionType =
+  | "video"
+  | "pattern"
+  | "experiment"
+  | "quiz"
+  | "challenge"
+  | "searching"
+  | "sorting_algo"
+  | "sorting"
+  | "debugging";
 
 export interface PatternItem {
   id: string;
@@ -55,6 +71,12 @@ export interface MissionData {
   classRange?: [number, number];
   tierId?: "tier-1-3" | "tier-4-5" | "tier-6-8" | "tier-9-10" | "tier-11-12";
 
+  // Dedicated Game Engine Payloads
+  searchingGame?: SearchingGameConfig;
+  sortingAlgoGame?: SortingAlgoConfig;
+  classificationGame?: ClassificationConfig;
+  debuggingGame?: DebuggingLogicConfig;
+
   // Interactive Content Payloads
   videoLesson?: {
     slides: {
@@ -79,16 +101,7 @@ export interface MissionData {
     };
   };
 
-  patternGame?: {
-    rounds: {
-      sequence: PatternItem[];
-      options: (PatternItem & { id: string })[];
-      correctId: string;
-      ruleExplanation?: string;
-      explanation?: string;
-      hint: string;
-    }[];
-  };
+  patternGame?: PatternPuzzleConfig;
 
   experimentLab?: {
     experimentType?: "classifier" | "dataset_cleaning" | "feature_selection" | "landmarks" | "chatbot_tree" | string;
@@ -228,6 +241,21 @@ export const missionRegistry: Record<string, MissionData> = {
         explanation: "Pocket calculators and timers use fixed mechanical/digital rules. Face unlock and music recommendations learn from data and user patterns!",
       },
     },
+    classificationGame: {
+      title: "Traditional Code vs AI-Powered Classification",
+      objective: "Sort technologies into Traditional Rule-Based Code vs Learning-Based AI",
+      categories: [
+        { id: "traditional", name: "Traditional Code", color: "#3B82F6", icon: "⚙️", description: "Follows strict IF-THEN rules written by humans" },
+        { id: "ai", name: "AI-Powered", color: "#8B5CF6", icon: "🧠", description: "Learns patterns from data and adapts" },
+      ],
+      items: [
+        { id: "c1", name: "Pocket Calculator (2+2=4)", category: "traditional", emoji: "🔢", description: "Fixed math circuit" },
+        { id: "c2", name: "Phone Face Unlock", category: "ai", emoji: "📱", description: "Vision neural network" },
+        { id: "c3", name: "Kitchen Microwave Timer", category: "traditional", emoji: "⏱️", description: "Countdown clock" },
+        { id: "c4", name: "Song Recommender", category: "ai", emoji: "🎵", description: "Learns music preferences" },
+      ],
+      ruleExplanation: "Calculators and timers follow rigid mechanical/digital circuits. Face recognition and song recommenders learn patterns from large datasets!",
+    },
   },
 
   "m1-2": {
@@ -350,63 +378,35 @@ export const missionRegistry: Record<string, MissionData> = {
     worldColor: "#3B82F6",
     worldBg: "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
     order: 4,
-    title: "AI in Real Life",
-    tagline: "Spot Artificial Intelligence at work in your daily routine",
-    description: "Explore how navigation apps, voice assistants, and streaming engines use AI every day.",
-    type: "quiz",
+    title: "Robot Algorithm Pipeline",
+    tagline: "Debug and order sequential instructions for the smart helper robot",
+    description: "Arrange sensor scanning, obstacle avoidance, motor control, and task execution in logical order to eliminate bugs in the robot pipeline.",
+    type: "debugging",
     stars: 3,
-    xpReward: 60,
+    xpReward: 70,
     difficulty: "Beginner",
     estimatedMinutes: 5,
     learningObjectives: [
-      "Recognize AI in smartphone apps, smart homes, and web services",
-      "Understand how real-time traffic prediction algorithms operate",
-      "Understand collaborative filtering in recommendation algorithms",
+      "Understand that algorithms must execute in strict sequential order",
+      "Identify logical ordering bugs in automation pipelines",
+      "Trace step-by-step execution before running instructions in the real world",
     ],
     instructions: [
-      "Read each real-world scenario carefully.",
-      "Pick the best answer for how AI helps solve that problem.",
-      "Review explanations to solidify your understanding.",
+      "Read the scrambled instructions for the robot helper.",
+      "Use the Up and Down arrow buttons to arrange steps in valid execution order.",
+      "Click 'Run & Verify Code Pipeline' to test execution without crashes!",
     ],
-    quizContent: {
-      questions: [
-        {
-          id: "q-m1-4-1",
-          question: "How does a GPS map app (like Google Maps) predict real-time traffic jams?",
-          options: [
-            "A police officer manually updates every road in the world",
-            "It collects anonymized speed data from millions of active drivers and detects slowdown patterns",
-            "It guesses randomly based on the day of the week",
-            "It looks at satellite weather photos only",
-          ],
-          correctIndex: 1,
-          explanation: "GPS services analyze anonymized speed and location patterns from phones on the road to instantly detect and predict traffic jams!",
-        },
-        {
-          id: "q-m1-4-2",
-          question: "When a video platform suggests a video you like, it is using:",
-          options: [
-            "A Recommendation Engine that matches your taste with similar viewers",
-            "A coin flip program",
-            "Only videos recorded in the last 10 minutes",
-            "A human moderator choosing videos for you personally",
-          ],
-          correctIndex: 0,
-          explanation: "Recommendation engines detect patterns in your watch history and match your preferences with millions of similar users worldwide.",
-        },
-        {
-          id: "q-m1-4-3",
-          question: "Which of these everyday smartphone features relies on Computer Vision AI?",
-          options: [
-            "Setting a mechanical alarm",
-            "Adjusting the speaker volume slider",
-            "Face recognition to unlock your phone",
-            "Checking the battery percentage",
-          ],
-          correctIndex: 2,
-          explanation: "Face unlock uses computer vision to analyze facial depth and landmarks from the camera to verify your identity.",
-        },
+    debuggingGame: {
+      title: "Debug the Room-Cleaning Robot Pipeline",
+      scenario: "Tara the cleaning robot's boot script is scrambled! If it moves before checking sensors, it crashes into furniture. Order the pipeline correctly.",
+      steps: [
+        { id: "s-move", order: 3, text: "Engage wheel motors and navigate toward dusty area", codeSnippet: "motor.driveForward(speed=0.5)" },
+        { id: "s-scan", order: 1, text: "Power on LIDAR and scan room for obstacles", codeSnippet: "sensors.scanEnvironment()" },
+        { id: "s-plan", order: 2, text: "Calculate collision-free path around chairs", codeSnippet: "path = planner.findRoute(obstacles)" },
+        { id: "s-clean", order: 4, text: "Activate vacuum suction motor over target zone", codeSnippet: "vacuum.startSuction()" },
       ],
+      correctOrder: ["s-scan", "s-plan", "s-move", "s-clean"],
+      hint: "First scan obstacles with sensors, then compute the route, move along the path, and turn on vacuum suction.",
     },
   },
 
@@ -417,62 +417,32 @@ export const missionRegistry: Record<string, MissionData> = {
     worldColor: "#3B82F6",
     worldBg: "linear-gradient(135deg, #DBEAFE, #BFDBFE)",
     order: 5,
-    title: "AI Myths vs Facts",
-    tagline: "Bust common misconceptions about Artificial Intelligence",
-    description: "Separate science fiction from the real science of computer intelligence.",
-    type: "quiz",
+    title: "Searching Algorithm Arena",
+    tagline: "Master Linear Search and Binary Search through interactive card challenges",
+    description: "Compare Linear Search (O(N)) and Binary Search (O(log N)) step by step. Predict midpoints, watch search range shrink, and discover why sorted data is required!",
+    type: "searching",
     stars: 3,
-    xpReward: 70,
+    xpReward: 80,
     difficulty: "Beginner",
-    estimatedMinutes: 5,
+    estimatedMinutes: 6,
     learningObjectives: [
-      "Distinguish between real AI capabilities and sci-fi movie tropes",
-      "Understand that AI models do not possess consciousness or biological emotions",
-      "Recognize the human role in building, guiding, and auditing AI",
+      "Understand how Linear Search inspects each element one-by-one from left to right",
+      "Master Binary Search by calculating midpoint = Math.floor((low + high) / 2)",
+      "Explain why Binary Search strictly requires sorted arrays",
+      "Compare time complexity: O(N) linear time vs O(log N) logarithmic time",
     ],
     instructions: [
-      "Decide whether each statement is a FACT or a MYTH.",
-      "Learn the scientific reason behind each answer.",
+      "Select a target number to find in the numbered cards.",
+      "In Linear Search mode, step through cards sequentially.",
+      "In Binary Search mode, predict whether the target is in the left or right half.",
+      "Observe the LOW, MID, HIGH pointers and search range shrinking!",
     ],
-    quizContent: {
-      questions: [
-        {
-          id: "q-m1-5-1",
-          question: "Myth or Fact: 'AI computers have real human feelings and feel happy when you praise them.'",
-          options: [
-            "Fact — AI robots have feelings like humans",
-            "Myth — AI processes numbers and algorithms without emotional consciousness",
-            "Fact — AI only feels sad when turned off",
-            "Myth — AI only has feelings if connected to Wi-Fi",
-          ],
-          correctIndex: 1,
-          explanation: "Myth! AI models do not experience feelings, pain, or joy. They simulate conversational text based on mathematical probabilities.",
-        },
-        {
-          id: "q-m1-5-2",
-          question: "Myth or Fact: 'AI can make mistakes or generate false information (hallucinations).'",
-          options: [
-            "Myth — AI is always 100% correct because it's a computer",
-            "Fact — AI can produce convincing mistakes and must always be double-checked",
-            "Myth — AI never makes mistakes in math or science",
-            "Fact — AI only makes mistakes on weekends",
-          ],
-          correctIndex: 1,
-          explanation: "Fact! AI models predict probable answers from patterns and can 'hallucinate' plausible-sounding errors. Always verify important facts!",
-        },
-        {
-          id: "q-m1-5-3",
-          question: "Myth or Fact: 'AI learns from human data, so if human data has bias, AI can become biased too.'",
-          options: [
-            "Fact — AI mirrors the biases present in its training dataset",
-            "Myth — AI automatically deletes all human bias",
-            "Fact — AI only has bias if programmed by hackers",
-            "Myth — Computers are immune to bias",
-          ],
-          correctIndex: 0,
-          explanation: "Fact! If an AI is trained on historical data containing human biases, it will repeat those biases unless engineers actively audit and rebalance the data.",
-        },
-      ],
+    searchingGame: {
+      algorithm: "both",
+      array: [14, 25, 38, 49, 56, 67, 72, 85, 93],
+      target: 67,
+      title: "Linear vs Binary Search Interactive Arena",
+      objective: "Find target 67 using both algorithms and compare total comparisons!",
     },
   },
 
@@ -727,48 +697,31 @@ export const missionRegistry: Record<string, MissionData> = {
     worldColor: "#7C3AED",
     worldBg: "linear-gradient(135deg, #EDE9FE, #DDD6FE)",
     order: 4,
-    title: "Predict the Future",
-    tagline: "Use regression and classification models to forecast outcomes",
-    description: "Learn how ML predicts continuous numbers and discrete categories.",
-    type: "quiz",
+    title: "Sorting Algorithm Arena",
+    tagline: "Master Bubble Sort, Selection Sort, and Insertion Sort with animated bars",
+    description: "Compare array values, predict SWAP vs KEEP decisions, and trace sorting passes to organize data for machine learning algorithms.",
+    type: "sorting_algo",
     stars: 3,
     xpReward: 100,
     difficulty: "Intermediate",
-    estimatedMinutes: 6,
+    estimatedMinutes: 7,
     learningObjectives: [
-      "Distinguish between Regression (continuous value) and Classification (category)",
-      "Understand trends and correlations in scatter data",
+      "Master Bubble Sort by comparing adjacent pairs and bubbling up maximums",
+      "Understand Selection Sort by finding minimums in unsorted subarrays",
+      "Learn Insertion Sort by building a sorted prefix like playing cards",
+      "Analyze comparisons vs swaps and time complexity O(N²)",
     ],
     instructions: [
-      "Solve the 3 prediction questions by choosing the right ML technique.",
+      "Switch between Bubble, Selection, and Insertion Sort tabs.",
+      "Predict whether the highlighted elements should SWAP or KEEP.",
+      "Watch the vertical bars change colors as elements reach SORTED state!",
+      "Use Autoplay or Step Forward controls to trace the entire algorithm.",
     ],
-    quizContent: {
-      questions: [
-        {
-          id: "q-m2-4-1",
-          question: "Predicting tomorrow's exact temperature (e.g. 24.5°C) is an example of:",
-          options: [
-            "Regression (predicting a continuous number)",
-            "Classification (choosing a label like Cat or Dog)",
-            "Clustering without numbers",
-            "Random generation",
-          ],
-          correctIndex: 0,
-          explanation: "Regression predicts numerical values along a continuous scale (like temperature, house prices, or running speed).",
-        },
-        {
-          id: "q-m2-4-2",
-          question: "If study hours increase from 1 hour to 5 hours and test scores consistently rise, this indicates:",
-          options: [
-            "A positive correlation that an ML model can learn",
-            "Zero relationship",
-            "A negative correlation",
-            "That study hours have no impact on learning",
-          ],
-          correctIndex: 0,
-          explanation: "When both variables increase together, they show positive correlation that regression algorithms use to make predictions.",
-        },
-      ],
+    sortingAlgoGame: {
+      algorithm: "bubble",
+      initialArray: [52, 19, 78, 31, 65, 42],
+      title: "Interactive Sorting Arena",
+      objective: "Sort all data points in ascending order using Bubble, Selection, and Insertion Sort!",
     },
   },
 
