@@ -16,13 +16,13 @@ const team = [
 const values = [
   { icon: "💡", title: "Curiosity First", desc: "We design every feature to spark wonder and make learning feel like an adventure." },
   { icon: "🌍", title: "Accessible to All", desc: "Quality AI education should not be limited by geography or income." },
-  { icon: "🤝", title: "Teacher Partnership", desc: "Teachers are superheroes — we build tools that amplify their impact, not replace them." },
+  { icon: "🛡️", title: "Child-Safe & Responsible", desc: "Designed from the ground up with strict safety guardrails and privacy protections." },
   { icon: "🔬", title: "Science-Backed", desc: "Every learning pathway is designed using proven cognitive science and pedagogy." },
 ];
 
 const stats = [
   { value: "50,000+", label: "Active Students" },
-  { value: "2,500+", label: "Teachers" },
+  { value: "1,200+", label: "Learning Modules" },
   { value: "500+", label: "Schools" },
   { value: "10M+", label: "Missions Completed" },
 ];
@@ -170,16 +170,16 @@ export default function AboutPage() {
         <section className="py-16 px-4 sm:px-6 text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
             <h2 className="text-3xl font-900 mb-3" style={{ color: "#172554" }}>Join 50,000+ Students Shaping the Future</h2>
-            <p className="text-slate-500 mb-6">Free to start. Loved by teachers. Designed for every student.</p>
+            <p className="text-slate-500 mb-6">Free to start. Loved by families and students. Designed for every learner.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link href="/auth/signup">
                 <motion.button className="btn-primary px-8 py-4 rounded-2xl font-800 text-base flex items-center gap-2" whileHover={{ scale: 1.04 }}>
                   Start Learning Free <ArrowRight size={18} />
                 </motion.button>
               </Link>
-              <Link href="/auth/signup?role=teacher">
+              <Link href="/explore">
                 <motion.button className="bg-white border-2 border-slate-200 text-slate-700 px-8 py-4 rounded-2xl font-700 text-base flex items-center gap-2 hover:border-violet-300 transition-all" whileHover={{ scale: 1.04 }}>
-                  <Users size={18} /> Join as a Teacher
+                  <Globe size={18} /> Explore Worlds
                 </motion.button>
               </Link>
             </div>

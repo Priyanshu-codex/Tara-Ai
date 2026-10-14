@@ -4,10 +4,11 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, BookOpen, GraduationCap } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, BookOpen, Shield, Sparkles } from "lucide-react";
 import Image from "next/image";
+import { loginAsDemo, loginUser } from "@/lib/auth";
 
-type Role = "student" | "teacher";
+type Role = "student" | "admin";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -17,6 +18,11 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [form, setForm] = useState({ email: "", password: "" });
 
+  const handleDemoLogin = () => {
+    loginAsDemo();
+    router.push("/dashboard");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -25,10 +31,14 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 1000));
     setLoading(false);
-    localStorage.setItem("tara_user", JSON.stringify({ email: form.email, role, name: role === "teacher" ? "Ms. Priya" : "Aarav Sharma" }));
-    router.push(role === "teacher" ? "/teacher/dashboard" : "/dashboard");
+    loginUser({
+      email: form.email,
+      role,
+      name: role === "admin" ? "Platform Administrator" : "Aarav Sharma",
+    });
+    router.push("/dashboard");
   };
 
   return (
@@ -71,9 +81,30 @@ export default function LoginPage() {
           <h1 className="text-3xl font-900 mb-2" style={{ color: "#172554" }}>Sign In to TARA</h1>
           <p className="text-slate-500 mb-8">Continue your learning adventure</p>
 
+          {/* Quick Demo Access Button */}
+          <motion.button
+            type="button"
+            onClick={handleDemoLogin}
+            className="w-full mb-6 py-4 px-5 rounded-2xl font-800 text-sm sm:text-base flex items-center justify-center gap-3 shadow-lg shadow-violet-200/50 border-2 border-violet-400 text-white transition-all group cursor-pointer"
+            style={{ background: "linear-gradient(135deg, #6941F5 0%, #4C2AD9 100%)" }}
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Sparkles size={18} className="text-yellow-300 fill-yellow-300 transition-transform group-hover:rotate-12" />
+            <span>Continue with Demo Account</span>
+            <span className="text-xs font-700 bg-white/20 px-2.5 py-1 rounded-full text-violet-100">1-Click</span>
+          </motion.button>
+
+          {/* Divider */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex-1 h-px bg-slate-200" />
+            <span className="text-xs uppercase tracking-wider font-700 text-slate-400">or sign in manually</span>
+            <div className="flex-1 h-px bg-slate-200" />
+          </div>
+
           {/* Role Selector */}
           <div className="flex rounded-2xl overflow-hidden border-2 border-violet-100 mb-8 p-1 bg-violet-50">
-            {(["student", "teacher"] as Role[]).map((r) => (
+            {(["student", "admin"] as Role[]).map((r) => (
               <motion.button
                 key={r}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-700 text-sm transition-all ${
@@ -82,8 +113,8 @@ export default function LoginPage() {
                 onClick={() => setRole(r)}
                 whileTap={{ scale: 0.97 }}
               >
-                {r === "student" ? <BookOpen size={16} /> : <GraduationCap size={16} />}
-                {r === "student" ? "Student" : "Teacher"}
+                {r === "student" ? <BookOpen size={16} /> : <Shield size={16} />}
+                {r === "student" ? "Student" : "Administrator"}
               </motion.button>
             ))}
           </div>
@@ -92,7 +123,7 @@ export default function LoginPage() {
             {/* Demo hint */}
             <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3">
               <p className="text-xs text-violet-600 font-600">
-                🎯 Demo Mode: Enter any email & password to sign in as {role === "student" ? "Aarav (Student)" : "Ms. Priya (Teacher)"}
+                🎯 Demo Mode: Enter any email & password to sign in as {role === "student" ? "Aarav (Student)" : "Platform Administrator"}
               </p>
             </div>
 
@@ -103,7 +134,7 @@ export default function LoginPage() {
                 <Mail size={18} className="text-slate-400" />
                 <input
                   type="email"
-                  placeholder={role === "student" ? "aarav@school.edu" : "priya@school.edu"}
+                  placeholder={role === "student" ? "aarav@school.edu" : "admin@tara.edu"}
                   value={form.email}
                   onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                   className="flex-1 outline-none text-sm text-slate-700 placeholder-slate-300 bg-transparent"

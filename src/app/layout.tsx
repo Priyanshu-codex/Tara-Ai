@@ -28,6 +28,8 @@ export const metadata: Metadata = {
   },
 };
 
+import AiraGlobalProvider from "@/components/aira/AiraGlobalProvider";
+
 export default function RootLayout({
   children,
 }: {
@@ -40,7 +42,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="min-h-screen antialiased">
-        {children}
+        <AiraGlobalProvider>{children}</AiraGlobalProvider>
       </body>
     </html>
   );

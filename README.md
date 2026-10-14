@@ -1,7 +1,7 @@
 # 🌟 TARA — AI-Powered Smart Learning Platform
 
 > **"Turn Curiosity Into Superpowers"**  
-> TARA is an intelligent, gamified EdTech platform engineered to make school learning deeply engaging, exploratory, and adaptive. Combining fantasy world-building, interactive AI tutoring, live hands-on simulations, and teacher intelligence dashboards.
+> TARA is an intelligent, gamified EdTech platform engineered to make school learning deeply engaging, exploratory, and adaptive. Combining fantasy world-building, interactive AI tutoring, live hands-on simulations, and student progress tracking.
 
 ---
 
@@ -18,11 +18,10 @@
 - **AI Lab Sandbox**: Hands-on sandbox for prompt experiments, mini code blocks, and robotics logic.
 - **Gamified Missions & Daily Quizzes**: Playable pattern recognition mini-game (`/dashboard/mission/spot-the-pattern`) and adaptive daily quizzes.
 
-### 👩‍🏫 3. Teacher Command Center
-- **Classroom Intelligence**: Real-time metrics on classroom engagement, student progress curves, and completion rates.
-- **Diagnostic Insights**: Automated flagging of struggling students and common misconceptions with recommended interventions.
-- **Curriculum & Assignment Management**: Quick creation, scheduling, and tracking of missions and assignments.
-- **Student Roster Management**: In-depth individual student profiles with mastery diagnostics and behavioral notes.
+### 📊 3. Student Progress & Analytics
+- **Growth Radar**: Visual skill breakdown across core competencies.
+- **Learning Streaks**: Daily engagement calendars and weekly activity metrics.
+- **Leaderboards & Quests**: Competitive yet encouraging challenges with XP bonuses.
 
 ---
 
@@ -85,22 +84,15 @@ tara/
 │   │   ├── progress/           # Skill analytics & radar
 │   │   ├── profile/            # Student avatar & profile editor
 │   │   ├── auth/
-│   │   │   ├── login/          # Role-based login (Student / Teacher / Parent)
+│   │   │   ├── login/          # Student & Administrator authentication
 │   │   │   └── signup/         # Interactive onboarding flow
-│   │   ├── dashboard/
-│   │   │   ├── page.tsx        # Student Hub
-│   │   │   ├── ai-tutor/       # Conversational AI Tutor
-│   │   │   ├── ai-lab/         # Interactive experimentation lab
-│   │   │   ├── quiz/           # Daily quiz flow
-│   │   │   ├── mission/        # Gamified pattern recognition missions
-│   │   │   └── worlds/         # Floating learning islands & paths
-│   │   └── teacher/
-│   │       ├── page.tsx        # Teacher Portal overview
-│   │       ├── dashboard/      # Classroom analytics
-│   │       ├── analytics/      # Concept mastery & interventions
-│   │       ├── classes/        # Roster & section manager
-│   │       ├── assignments/    # Homework & quest allocator
-│   │       └── students/       # Student diagnostic profiles
+│   │   └── dashboard/
+│   │       ├── page.tsx        # Student Hub
+│   │       ├── ai-tutor/       # Conversational AI Tutor
+│   │       ├── ai-lab/         # Interactive experimentation lab
+│   │       ├── quiz/           # Daily quiz flow
+│   │       ├── mission/        # Gamified pattern recognition missions
+│   │       └── worlds/         # Floating learning islands & paths
 │   ├── components/             # Reusable UI & Navigation components
 │   └── lib/                    # Types, mock data, and utilities
 └── tsconfig.json
@@ -113,7 +105,7 @@ tara/
 TARA is designed with child safety at its foundation:
 - No tracking or commercial ad targeting
 - Child-safe Socratic AI guardrails
-- Role-based access controls for Students, Teachers, and Parents
+- Role-based authorization for Student and Administrator roles
 
 ---
 

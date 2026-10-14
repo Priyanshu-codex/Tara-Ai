@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, X, Lightbulb, RotateCcw, ArrowRight, Zap } from "lucide-react";
+import { ArrowLeft, Check, X, Lightbulb, RotateCcw, ArrowRight, Zap, Bot, Sparkles } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent } from "@/lib/mockData";
+import { useAira } from "@/components/aira/AiraContext";
 
 const questions = [
   {
@@ -47,6 +48,7 @@ const questions = [
 
 export default function DailyQuizPage() {
   const student = mockStudent;
+  const { openAiraWithTopic, openAiraForQuiz } = useAira();
   const [currentQ, setCurrentQ] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -138,6 +140,21 @@ export default function DailyQuizPage() {
                   <p className="text-xs text-slate-700 flex-1 truncate">{q.question}</p>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-2 justify-between items-center">
+              <button
+                onClick={() => openAiraWithTopic("Why was my answer wrong in the daily AI quiz? Can you explain the questions I missed?")}
+                className="text-xs font-700 text-violet-700 hover:text-violet-900 flex items-center gap-1.5 cursor-pointer py-1"
+              >
+                <Bot size={14} className="text-violet-600" /> Ask Aira to explain my mistakes
+              </button>
+              <button
+                onClick={openAiraForQuiz}
+                className="text-xs font-700 text-emerald-700 hover:text-emerald-900 flex items-center gap-1.5 cursor-pointer py-1"
+              >
+                <Sparkles size={14} className="text-emerald-600" /> Mini Quiz with Aira
+              </button>
             </div>
           </motion.div>
 
@@ -283,6 +300,17 @@ export default function DailyQuizPage() {
                     {isCorrect ? "✅ Correct!" : `❌ The correct answer is: ${question.options[question.correct]}`}
                   </p>
                   <p className="text-sm text-slate-600">{question.explanation}</p>
+                  {!isCorrect && (
+                    <button
+                      onClick={() => {
+                        const chosen = selected !== null ? question.options[selected] : "my selection";
+                        openAiraWithTopic(`Why was my answer wrong? In "${question.question}", I chose "${chosen}", but the correct answer is "${question.options[question.correct]}". Can you explain the difference simply?`);
+                      }}
+                      className="mt-2 text-xs font-700 text-violet-700 hover:text-violet-900 flex items-center gap-1.5 cursor-pointer underline"
+                    >
+                      <Bot size={13} /> Ask Aira: Why was my answer wrong?
+                    </button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

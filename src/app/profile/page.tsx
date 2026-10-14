@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Edit3, Star, Flame, Trophy, Camera, CheckCircle2, ArrowRight } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent, worlds, recentAchievements } from "@/lib/mockData";
+import { getStoredUser } from "@/lib/auth";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -14,6 +15,14 @@ export default function ProfilePage() {
   const [bio, setBio] = useState("AI Explorer & Future Technologist 🚀");
   const [savedName, setSavedName] = useState(student.name);
   const [savedBio, setSavedBio] = useState("AI Explorer & Future Technologist 🚀");
+
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user?.name) {
+      setDisplayName(user.name);
+      setSavedName(user.name);
+    }
+  }, []);
 
   const handleSave = () => {
     setSavedName(displayName);
@@ -87,7 +96,7 @@ export default function ProfilePage() {
                     </motion.button>
                   </div>
                   <p className="text-violet-200 text-sm mb-1">{savedBio}</p>
-                  <p className="text-violet-200 text-sm">{student.levelName} · Class 8 · {student.missionsCompleted} Missions</p>
+                  <p className="text-violet-200 text-sm">{student.levelName} · Class 8 · Age {student.age || 13} · {student.missionsCompleted} Missions</p>
                 </>
               )}
             </div>

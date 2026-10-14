@@ -1,9 +1,9 @@
 // TARA Platform – Mock Data
 
 import type {
-  Student, Teacher, World, Badge, LearningActivity,
+  Student, Administrator, World, Badge, LearningActivity,
   Achievement, Challenge, WeeklyData, SubjectPerformance,
-  StudentProgress, SchoolClass
+  StudentProgress
 } from "./types";
 
 // ── Mock Student ──────────────────────────────────────────────────────────────
@@ -52,18 +52,13 @@ export const mockStudent: Student = {
   ],
 };
 
-// ── Mock Teacher ──────────────────────────────────────────────────────────────
-export const mockTeacher: Teacher = {
-  id: "teacher-1",
-  name: "Ms. Priya",
-  email: "priya@tara.edu",
-  role: "teacher",
-  subject: "Computer Science & AI",
-  classes: [
-    { id: "cls-1", name: "Class 8A", section: "A", students: 32, avgCompletion: 78, avgLevel: 4 },
-    { id: "cls-2", name: "Class 8B", section: "B", students: 28, avgCompletion: 65, avgLevel: 3 },
-    { id: "cls-3", name: "Class 9A", section: "A", students: 30, avgCompletion: 82, avgLevel: 5 },
-  ],
+// ── Mock Administrator ────────────────────────────────────────────────────────
+export const mockAdmin: Administrator = {
+  id: "admin-1",
+  name: "Platform Administrator",
+  email: "admin@tara.edu",
+  role: "admin",
+  permissions: ["manage_content", "view_analytics", "manage_curriculum", "system_settings"],
 };
 
 // ── Learning Worlds ───────────────────────────────────────────────────────────
@@ -260,7 +255,7 @@ export const subjectPerformance: SubjectPerformance[] = [
   { subject: "Social Science", score: 60, color: "#F59E0B" },
 ];
 
-// ── Teacher Dashboard Data ────────────────────────────────────────────────────
+// ── Student Progress & Leaderboard Data ─────────────────────────────────────────
 export const studentProgressData: StudentProgress[] = [
   { id: "s1", name: "Aarav Sharma", level: 5, xp: 450, completion: 92, avatar: "👦" },
   { id: "s2", name: "Diya Patel", level: 4, xp: 380, completion: 78, avatar: "👧" },

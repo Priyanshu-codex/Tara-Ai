@@ -1,6 +1,6 @@
 // TARA Platform – Type Definitions
 
-export type UserRole = "student" | "teacher";
+export type UserRole = "student" | "admin";
 
 export interface User {
   id: string;
@@ -10,6 +10,8 @@ export interface User {
   avatar?: string;
   class?: string;
   school?: string;
+  age?: number;
+  isDemo?: boolean;
 }
 
 export interface Student extends User {
@@ -26,10 +28,9 @@ export interface Student extends User {
   globalRank?: number;
 }
 
-export interface Teacher extends User {
-  role: "teacher";
-  subject: string;
-  classes: SchoolClass[];
+export interface Administrator extends User {
+  role: "admin";
+  permissions: string[];
 }
 
 export interface World {
@@ -77,13 +78,13 @@ export interface Badge {
   category: "learning" | "streak" | "achievement" | "special";
 }
 
-export interface SchoolClass {
+export interface StudentProgress {
   id: string;
   name: string;
-  section: string;
-  students: number;
-  avgCompletion: number;
-  avgLevel: number;
+  level: number;
+  xp: number;
+  completion: number;
+  avatar: string;
 }
 
 export interface LearningActivity {
@@ -140,20 +141,4 @@ export interface SubjectPerformance {
   color: string;
 }
 
-export interface StudentProgress {
-  id: string;
-  name: string;
-  level: number;
-  xp: number;
-  completion: number;
-  avatar: string;
-}
 
-export interface AssignedMission {
-  id: string;
-  worldId: string;
-  missionId: string;
-  dueDate: string;
-  classId: string;
-  assignedBy: string;
-}

@@ -3,9 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Lightbulb, Star, CheckCircle2, RotateCcw, Trophy, Zap } from "lucide-react";
+import { ArrowLeft, Lightbulb, Star, CheckCircle2, RotateCcw, Trophy, Zap, Bot, Sparkles } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent } from "@/lib/mockData";
+import { useAira } from "@/components/aira/AiraContext";
 import Image from "next/image";
 
 type Shape = { color: string; shape: "circle" | "square" | "triangle" | "star"; label: string };
@@ -60,6 +61,7 @@ function ShapeIcon({ shape, color, size = 56 }: { shape: string; color: string; 
 
 export default function SpotThePatternMission() {
   const student = mockStudent;
+  const { openAiraWithMission } = useAira();
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -369,6 +371,44 @@ export default function SpotThePatternMission() {
                   </li>
                 ))}
               </ul>
+            </motion.div>
+
+            {/* Ask Aira Learning Buddy */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 }}
+              className="bg-gradient-to-br from-violet-600 to-indigo-700 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden"
+            >
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                  <Bot size={19} className="text-white" />
+                </div>
+                <div>
+                  <h4 className="font-800 text-sm">Need Help? Ask Aira</h4>
+                  <p className="text-[11px] text-violet-200">Your AI Learning Buddy</p>
+                </div>
+              </div>
+              <p className="text-xs text-violet-100 mb-3.5 leading-relaxed">
+                Stuck on this sequence? Aira gives progressive clues to help you figure it out step-by-step!
+              </p>
+              <motion.button
+                onClick={() =>
+                  openAiraWithMission({
+                    worldId: "world-1",
+                    worldName: "AI Basics",
+                    missionId: "m1-2",
+                    missionTitle: "Spot the Pattern",
+                    instructions:
+                      "Find the repeating shape and color pattern in the sequence: Red Circle, Blue Square, Green Triangle...",
+                  })
+                }
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="w-full py-2.5 rounded-xl bg-white text-violet-700 font-800 text-xs shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Sparkles size={13} className="text-violet-600" /> Ask Aira for Hints
+              </motion.button>
             </motion.div>
           </div>
         </div>

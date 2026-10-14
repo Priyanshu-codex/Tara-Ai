@@ -37,8 +37,8 @@ export default function AITutorPage() {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hi! I'm TARA, your AI learning assistant! 👋\n\nI can help you with **any subject** — Math, Science, English, AI concepts, and more!\n\nWhat would you like to learn today?",
-      timestamp: new Date(),
+      content: "Hi! I'm **Aira**, your AI Learning Buddy! 🌟\n\nI can help you with AI concepts, math, science, learning missions, and interactive quizzes!\n\nWhat would you like to explore today?",
+      timestamp: new Date("2026-10-14T10:00:00Z"),
     }
   ]);
   const [input, setInput] = useState("");
@@ -52,23 +52,53 @@ export default function AITutorPage() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: text, timestamp: new Date() };
+    const now = new Date();
+    const userMsg: ChatMessage = { id: `u-${now.getTime()}`, role: "user", content: text, timestamp: now };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
-    await new Promise(r => setTimeout(r, 1000 + Math.random() * 800));
-    const response = getMockResponse(text);
-    const aiMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: "assistant", content: response, timestamp: new Date() };
-    setMessages(prev => [...prev, aiMsg]);
-    setIsTyping(false);
+
+    try {
+      const res = await fetch("/api/aira/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: text,
+          studentProfile: {
+            id: student.id,
+            name: student.name,
+            age: student.age || 13,
+            grade: student.class || "Class 8",
+            xp: student.xp,
+            level: student.level,
+            completedMissions: student.missionsCompleted,
+          },
+          history: messages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+        }),
+      });
+
+      const data = await res.json();
+      const reply = data?.reply || getMockResponse(text);
+      const aiDate = new Date();
+      const aiMsg: ChatMessage = { id: `a-${aiDate.getTime()}`, role: "assistant", content: reply, timestamp: aiDate };
+      setMessages(prev => [...prev, aiMsg]);
+    } catch {
+      const fallbackReply = getMockResponse(text);
+      const aiDate = new Date();
+      const aiMsg: ChatMessage = { id: `a-${aiDate.getTime()}`, role: "assistant", content: fallbackReply, timestamp: aiDate };
+      setMessages(prev => [...prev, aiMsg]);
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleNewChat = () => {
+    const welcomeDate = new Date();
     setMessages([{
       id: "welcome-new",
       role: "assistant",
-      content: "Starting a new conversation! 🚀 What would you like to explore?",
-      timestamp: new Date(),
+      content: "Starting a new conversation with Aira! 🚀 What would you like to explore?",
+      timestamp: welcomeDate,
     }]);
     setInput("");
   };
@@ -108,8 +138,8 @@ export default function AITutorPage() {
                   transition={{ duration: 1.5, repeat: Infinity }}
                 />
               </div>
-              <h2 className="font-800 text-slate-800">AI Tutor</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Your personal learning assistant</p>
+              <h2 className="font-800 text-slate-800">Aira</h2>
+              <p className="text-xs text-slate-400 mt-0.5">Your AI Learning Buddy</p>
               <motion.button
                 onClick={handleNewChat}
                 className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 btn-primary rounded-xl text-sm font-700"

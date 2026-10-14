@@ -7,9 +7,9 @@ import { ArrowLeft, Star, Lock, CheckCircle2, ChevronRight, Trophy, Play, BookOp
 import Navigation from "@/components/Navigation";
 import { worlds } from "@/lib/mockData";
 import { mockStudent } from "@/lib/mockData";
-import { use } from "react";
+import { Suspense, use } from "react";
 
-export default function WorldDetailPage({ params }: { params: Promise<{ worldId: string }> }) {
+function WorldContent({ params }: { params: Promise<{ worldId: string }> }) {
   const { worldId } = use(params);
   const world = worlds.find(w => w.id === worldId) ?? worlds[0];
   const student = mockStudent;
@@ -250,5 +250,22 @@ export default function WorldDetailPage({ params }: { params: Promise<{ worldId:
         </div>
       </main>
     </div>
+  );
+}
+
+export default function WorldDetailPage({ params }: { params: Promise<{ worldId: string }> }) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-sky-50">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+            <p className="text-violet-700 font-700 text-sm">Loading learning world...</p>
+          </div>
+        </div>
+      }
+    >
+      <WorldContent params={params} />
+    </Suspense>
   );
 }
