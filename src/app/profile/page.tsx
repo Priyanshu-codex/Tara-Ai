@@ -96,7 +96,7 @@ export default function ProfilePage() {
                     </motion.button>
                   </div>
                   <p className="text-violet-200 text-sm mb-1">{savedBio}</p>
-                  <p className="text-violet-200 text-sm">{student.levelName} · Class 8 · {student.missionsCompleted} Missions</p>
+                  <p className="text-violet-200 text-sm">{student.levelName} · Class 8 · Age {student.age || 13} · {student.missionsCompleted} Missions</p>
                 </>
               )}
             </div>

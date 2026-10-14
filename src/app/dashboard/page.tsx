@@ -6,12 +6,14 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import {
   Star, Flame, BookOpen, Globe, Trophy, Brain, FlaskConical,
-  Play, ArrowRight, Lock, CheckCircle2, TrendingUp, Target
+  Play, ArrowRight, Lock, CheckCircle2, TrendingUp, Target,
+  Bot, Sparkles
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { worlds, learningActivities, recentAchievements } from "@/lib/mockData";
 import { getStoredUser, loginAsDemo, logout, DEMO_STUDENT } from "@/lib/auth";
 import type { Student } from "@/lib/types";
+import { useAira } from "@/components/aira/AiraContext";
 
 function XPBar({ current, max }: { current: number; max: number }) {
   const pct = Math.min((current / max) * 100, 100);
@@ -111,6 +113,7 @@ const statCardVariants = {
 };
 
 export default function StudentDashboard() {
+  const { toggleOpen, sendMessage, openAiraForQuiz } = useAira();
   const [student, setStudent] = useState<Student>(DEMO_STUDENT);
   const [isDemo, setIsDemo] = useState(true);
 
@@ -333,6 +336,44 @@ export default function StudentDashboard() {
 
           {/* ── Sidebar column ─────────────────────────────────────────────── */}
           <div className="space-y-5">
+            {/* Aira AI Learning Buddy Card */}
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
+              className="bg-gradient-to-br from-violet-600 via-purple-600 to-indigo-700 text-white rounded-3xl p-5 shadow-lg relative overflow-hidden"
+            >
+              <div className="flex items-center gap-3 mb-2.5">
+                <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center">
+                  <Bot size={22} className="text-white" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="font-800 text-sm">Aira</h3>
+                    <span className="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-700">AI Buddy</span>
+                  </div>
+                  <p className="text-[11px] text-violet-200">Your Personal Learning Companion</p>
+                </div>
+              </div>
+              <p className="text-xs text-violet-100 mb-3.5 leading-relaxed">
+                Need help with a tricky mission, want to understand how AI works, or ready for an interactive quiz?
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => sendMessage("Explain AI", "explain")}
+                  className="py-2 px-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-700 text-xs text-center transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <Sparkles size={12} className="text-amber-300" /> Explain AI
+                </button>
+                <button
+                  onClick={openAiraForQuiz}
+                  className="py-2 px-2.5 rounded-xl bg-white text-violet-700 font-800 text-xs text-center shadow-sm hover:bg-violet-50 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <Bot size={12} /> Quiz Me
+                </button>
+              </div>
+            </motion.div>
+
             {/* Quick actions */}
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
               <h2 className="text-xl font-900 mb-4" style={{ color: "#172554" }}>Recommended for You</h2>

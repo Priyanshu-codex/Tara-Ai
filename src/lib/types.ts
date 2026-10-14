@@ -10,6 +10,7 @@ export interface User {
   avatar?: string;
   class?: string;
   school?: string;
+  age?: number;
   isDemo?: boolean;
 }
 

@@ -10,6 +10,7 @@ export const DEMO_STUDENT: Student = {
   role: "student",
   isDemo: true,
   class: "Class 8",
+  age: 13,
   school: "Oakridge International School",
   avatar: "👦",
   xp: 450,

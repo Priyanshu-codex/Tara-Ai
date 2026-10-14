@@ -11,6 +11,7 @@ import {
   TrendingUp, Shield, CheckCircle2
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
+import LeftHeroFloatingEmojis from "@/components/LeftHeroFloatingEmojis";
 
 // ── Floating decoration ──────────────────────────────────────────────────────
 function FloatingIcon({ icon, className, delay = 0, duration = 3 }: {
@@ -173,14 +174,14 @@ export default function HomePage() {
         <motion.div style={{ y: cloudY2 }} className="absolute top-32 right-[15%] w-24 h-10 bg-white/60 rounded-full blur-sm animate-cloud-drift-2 z-0" />
         <motion.div style={{ y: cloudY1 }} className="absolute top-48 left-[30%] w-20 h-8 bg-white/50 rounded-full blur-sm animate-cloud-drift z-0" />
 
-        {/* Floating educational icons */}
-        <FloatingIcon icon="📚" className="top-[15%] left-[8%] opacity-70" delay={0} duration={3.5} />
-        <FloatingIcon icon="💡" className="top-[20%] right-[12%] opacity-70" delay={0.8} duration={4} />
-        <FloatingIcon icon="🔬" className="top-[45%] left-[5%] opacity-60" delay={1.5} duration={3.2} />
-        <FloatingIcon icon="⭐" className="top-[25%] left-[20%] opacity-80" delay={0.4} duration={2.5} />
-        <FloatingIcon icon="🚀" className="top-[35%] right-[8%] opacity-70" delay={1.2} duration={3.8} />
-        <FloatingIcon icon="🎮" className="top-[60%] right-[18%] opacity-60" delay={0.6} duration={4.5} />
-        <FloatingIcon icon="🌟" className="top-[15%] right-[30%] opacity-60" delay={2} duration={3} />
+        {/* ── Left-Side Floating Educational Emojis ────────────────────── */}
+        <LeftHeroFloatingEmojis />
+
+        {/* Ambient right-side icons */}
+        <FloatingIcon icon="💡" className="top-[20%] right-[12%] opacity-60" delay={0.8} duration={4} />
+        <FloatingIcon icon="🚀" className="top-[35%] right-[8%] opacity-60" delay={1.2} duration={3.8} />
+        <FloatingIcon icon="🎮" className="top-[60%] right-[18%] opacity-50" delay={0.6} duration={4.5} />
+        <FloatingIcon icon="🌟" className="top-[15%] right-[30%] opacity-50" delay={2} duration={3} />
 
         {/* Main Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-12 grid lg:grid-cols-2 gap-12 items-center w-full">
