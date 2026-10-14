@@ -32,6 +32,17 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# secrets & keys
+*.key
+*.pem
+*.cert
+*.crt
+*.pfx
+*.p12
+id_rsa*
+*.secret
 
 # vercel
 .vercel
@@ -39,3 +50,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OS
+.DS_Store
+Thumbs.db
