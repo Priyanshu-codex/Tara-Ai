@@ -1,4 +1,4 @@
-// Aira Service: Pedagogical AI Engine & Provider Orchestrator
+// Tara Service: Pedagogical AI Engine & Provider Orchestrator
 import type {
   AiraChatRequest,
   AiraChatResponse,
@@ -49,7 +49,7 @@ export function buildAiraSystemPrompt(
   grade: string,
   missionContext?: AiraMissionContext
 ): string {
-  return `You are Aira, a friendly, supportive, curious, patient, and encouraging AI Learning Buddy for school students on the TARA AI platform.
+  return `You are Tara, a friendly, supportive, curious, patient, and encouraging AI Learning Buddy for school students on the TARA AI platform.
 
 Student Profile:
 - Age: ${age} years old
@@ -77,9 +77,11 @@ Core Rules:
 5. Emphasize that AI is a tool created by humans, can sometimes make mistakes, and students should think critically and verify information.`;
 }
 
+export const buildTaraSystemPrompt = buildAiraSystemPrompt;
+
 // Pedagogical Rule-Based Engine (Guaranteed, zero-downtime, fully tailored fallback)
 export function processWithPedagogicalEngine(request: AiraChatRequest): AiraChatResponse {
-  const message = request.message.trim();
+  const message = (request.message || "").trim();
   const lower = message.toLowerCase();
   const studentAge = calculateStudentAge(
     request.studentProfile?.grade,
@@ -292,7 +294,7 @@ export function processWithPedagogicalEngine(request: AiraChatRequest): AiraChat
       success: true,
       messageId: responseId,
       conversationId,
-      reply: `🛡️ **Aira's AI Safety Guide:**\n\nAs young AI explorers, remembering these 4 Golden Rules keeps everyone safe:\n\n1. 🔒 **Protect Your Privacy:** Never give an AI chatbot your home address, full name, passwords, or school location.\n2. 🔍 **Verify Facts:** AI is smart, but it can hallucinate (make confident-sounding mistakes). Always double-check important homework with trusted books and teachers.\n3. ⚖️ **Watch for Bias:** AI learns from data created by humans. If the data is unfair, the AI can make biased choices.\n4. 🤝 **Use AI for Good:** Use AI to create, learn, and solve problems, never to deceive or bully others.\n\nWould you like a quiz on AI safety?`,
+      reply: `🛡️ **Tara's AI Safety Guide:**\n\nAs young AI explorers, remembering these 4 Golden Rules keeps everyone safe:\n\n1. 🔒 **Protect Your Privacy:** Never give an AI chatbot your home address, full name, passwords, or school location.\n2. 🔍 **Verify Facts:** AI is smart, but it can hallucinate (make confident-sounding mistakes). Always double-check important homework with trusted books and teachers.\n3. ⚖️ **Watch for Bias:** AI learns from data created by humans. If the data is unfair, the AI can make biased choices.\n4. 🤝 **Use AI for Good:** Use AI to create, learn, and solve problems, never to deceive or bully others.\n\nWould you like a quiz on AI safety?`,
       provider: "pedagogical_engine",
       followUps: ["Quiz Me on AI Safety", "Explain AI", "Project Ideas"],
     };
@@ -363,7 +365,7 @@ export function processWithPedagogicalEngine(request: AiraChatRequest): AiraChat
     success: true,
     messageId: responseId,
     conversationId,
-    reply: `Hi! I'm **Aira**, your AI Learning Buddy! 🌟\n\nI can help you understand AI, guide you through missions like **Spot the Pattern**, test your skills with mini-quizzes, or brainstorm AI project ideas.\n\nWhat would you like to explore right now?`,
+    reply: `Hi! I'm **Tara**, your AI Learning Buddy! 🌟\n\nI can help you understand AI, guide you through missions like **Spot the Pattern**, test your skills with mini-quizzes, or brainstorm AI project ideas.\n\nWhat would you like to explore right now?`,
     provider: "pedagogical_engine",
     followUps: [
       "Explain AI",
@@ -504,3 +506,5 @@ export async function generateAiraResponse(
   // 3. Guaranteed Pedagogical Engine
   return processWithPedagogicalEngine(request);
 }
+
+export const generateTaraResponse = generateAiraResponse;

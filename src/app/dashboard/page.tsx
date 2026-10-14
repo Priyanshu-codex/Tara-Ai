@@ -3,16 +3,20 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, Flame, BookOpen, Globe, Trophy, Brain, FlaskConical,
   Play, ArrowRight, Lock, CheckCircle2, TrendingUp, Target,
-  Bot, Sparkles
+  Bot, Sparkles, GraduationCap, AlertCircle, ChevronRight,
+  FileQuestion, Compass
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
-import { worlds, learningActivities, recentAchievements } from "@/lib/mockData";
-import { getStoredUser, loginAsDemo, logout, DEMO_STUDENT } from "@/lib/auth";
-import type { Student } from "@/lib/types";
+import { learningActivities, recentAchievements } from "@/lib/mockData";
+import { getStoredUser, loginAsDemo, logout, DEMO_STUDENT, getStudentClassNumber, formatClassName } from "@/lib/auth";
+import { getCurriculumTier } from "@/lib/missions/classCurriculum";
+import { getWorldsForClass } from "@/lib/missions/missionRegistry";
+import ClassSelectionModal from "@/components/ClassSelectionModal";
+import type { Student, World } from "@/lib/types";
 import { useAira } from "@/components/aira/AiraContext";
 
 function XPBar({ current, max }: { current: number; max: number }) {
@@ -29,9 +33,9 @@ function XPBar({ current, max }: { current: number; max: number }) {
   );
 }
 
-function WorldCard({ world, progress }: { world: typeof worlds[0]; progress?: { completed: number; total: number } }) {
-  const completed = progress?.completed ?? world.completedMissions;
-  const total = progress?.total ?? world.totalMissions;
+function WorldCard({ world, progress }: { world: World; progress?: { completed: number; total: number } }) {
+  const completed = progress?.completed ?? world.completedMissions ?? 0;
+  const total = progress?.total ?? world.totalMissions ?? 5;
   const pct = Math.round((completed / total) * 100);
 
   return (
@@ -40,7 +44,7 @@ function WorldCard({ world, progress }: { world: typeof worlds[0]; progress?: { 
       className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 group"
     >
       {/* World banner */}
-      <div className="h-24 relative flex items-center justify-center" style={{ background: world.bgColor }}>
+      <div className="h-24 relative flex items-center justify-center" style={{ background: world.bgColor || "#EDE9FE" }}>
         <span className="text-5xl">{world.icon}</span>
         {world.isLocked && (
           <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center">
@@ -79,7 +83,17 @@ function WorldCard({ world, progress }: { world: typeof worlds[0]; progress?: { 
             style={!world.isLocked && pct < 100 ? { background: world.color } : {}}
             whileHover={!world.isLocked ? { scale: 1.03 } : {}}
           >
-            {world.isLocked ? "🔒 Locked" : pct === 100 ? "✅ Completed!" : "Continue"}
+            {world.isLocked ? (
+              <span className="flex items-center justify-center gap-1">
+                <Lock size={12} /> Locked
+              </span>
+            ) : pct === 100 ? (
+              <span className="flex items-center justify-center gap-1">
+                <CheckCircle2 size={12} /> Completed
+              </span>
+            ) : (
+              "Continue"
+            )}
           </motion.button>
         </Link>
       </div>
@@ -116,6 +130,7 @@ export default function StudentDashboard() {
   const { toggleOpen, sendMessage, openAiraForQuiz } = useAira();
   const [student, setStudent] = useState<Student>(DEMO_STUDENT);
   const [isDemo, setIsDemo] = useState(true);
+  const [showClassModal, setShowClassModal] = useState(false);
 
   useEffect(() => {
     const user = getStoredUser();
@@ -128,16 +143,36 @@ export default function StudentDashboard() {
       setStudent(demo);
       setIsDemo(true);
     }
+
+    const handleSync = () => {
+      const updated = getStoredUser() as Student | null;
+      if (updated) {
+        setStudent(updated);
+        setIsDemo(Boolean(updated.isDemo));
+      }
+    };
+
+    window.addEventListener("tara-class-change", handleSync);
+    window.addEventListener("tara-auth-change", handleSync);
+    return () => {
+      window.removeEventListener("tara-class-change", handleSync);
+      window.removeEventListener("tara-auth-change", handleSync);
+    };
   }, []);
+
+  const studentClass = getStudentClassNumber(student);
+  const tier = getCurriculumTier(studentClass);
+  const classWorlds = getWorldsForClass(studentClass);
+  const isClassMissing = !student.classNumber && (!student.class || student.class.trim() === "");
 
   const xpNeeded = 500;
   const currentXP = student.xp;
 
   const subjects = [
-    { name: "Mathematics", topic: "Linear Equations", progress: 70, color: "#6941F5" },
-    { name: "Science", topic: "Photosynthesis", progress: 40, color: "#22C55E" },
-    { name: "English", topic: "Reading Comprehension", progress: 85, color: "#3B82F6" },
-    { name: "Social Science", topic: "Independence Movement", progress: 30, color: "#F59E0B" },
+    { name: "Artificial Intelligence", topic: tier.title, progress: 65, color: "#6941F5" },
+    { name: "Computer Science", topic: "Algorithms & Logic", progress: 45, color: "#22C55E" },
+    { name: "Data & Ethics", topic: "Responsible Innovation", progress: 80, color: "#3B82F6" },
+    { name: "Applied Problem Solving", topic: "Hands-on Missions", progress: 50, color: "#F59E0B" },
   ];
 
   return (
@@ -169,7 +204,7 @@ export default function StudentDashboard() {
                   <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </p>
                 <p className="text-xs text-amber-700">
-                  Exploring TARA as <strong>{student.name}</strong> ({student.class}) • Full access to learning worlds, AI Tutor, and quizzes. Data is isolated to this session.
+                  Exploring TARA as <strong>{student.name}</strong> ({formatClassName(studentClass)}) • Full access to learning worlds, AI Tutor, and quizzes.
                 </p>
               </div>
             </div>
@@ -185,6 +220,27 @@ export default function StudentDashboard() {
           </motion.div>
         )}
 
+        {/* ── Missing Class Onboarding Notice ───────────────────────────── */}
+        {isClassMissing && (
+          <div className="mb-6 bg-rose-50 border-2 border-rose-300 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-rose-600 flex-shrink-0" size={24} />
+              <div>
+                <p className="text-sm font-900 text-rose-900">Class Selection Required</p>
+                <p className="text-xs text-rose-700">
+                  Please select your school grade (Classes 1–12) to receive personalized, class-appropriate missions and learning content.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowClassModal(true)}
+              className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-800 text-xs rounded-xl shadow-md cursor-pointer transition-colors flex-shrink-0"
+            >
+              Select My School Class
+            </button>
+          </div>
+        )}
+
         {/* ── Greeting & Stats ──────────────────────────────────────────────── */}
         <div className="grid lg:grid-cols-3 gap-5 mb-6">
           {/* Welcome card */}
@@ -197,7 +253,16 @@ export default function StudentDashboard() {
             <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full bg-white/10" />
             <div className="absolute -right-4 bottom-4 w-20 h-20 rounded-full bg-white/10" />
             <div className="relative z-10">
-              <p className="text-violet-200 text-sm font-600 mb-1">Good Morning, {student.name.split(" ")[0]}! 👋</p>
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-violet-200 text-xs font-700">Good Morning, {student.name.split(" ")[0]}! 👋</span>
+                <button
+                  onClick={() => setShowClassModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 hover:bg-white/30 text-white text-[11px] font-800 backdrop-blur-xs transition-colors cursor-pointer"
+                >
+                  <GraduationCap size={13} />
+                  Class {studentClass} ({tier.name})
+                </button>
+              </div>
               <h1 className="text-xl font-900 mb-1">Let&apos;s make today a productive learning day.</h1>
               <p className="text-violet-200 text-xs mb-4">You&apos;re on a {student.streak}-day streak! Keep it up! 🔥</p>
 
@@ -214,10 +279,10 @@ export default function StudentDashboard() {
 
           {/* Stat cards */}
           {[
-            { label: "Learning Streak", value: `${student.streak} Days`, icon: "🔥", color: "#EA580C", bg: "from-orange-50 to-amber-50", border: "border-orange-100" },
-            { label: "AI Explorer", value: `Level ${student.level}`, icon: "⭐", color: "#6941F5", bg: "from-violet-50 to-purple-50", border: "border-violet-100" },
-            { label: "XP Earned", value: `${currentXP}/500`, icon: "💎", color: "#3B82F6", bg: "from-blue-50 to-sky-50", border: "border-blue-100" },
-            { label: "Missions Done", value: `${student.missionsCompleted}`, icon: "✅", color: "#22C55E", bg: "from-green-50 to-emerald-50", border: "border-green-100" },
+            { label: "Learning Streak", value: `${student.streak} Days`, icon: <Flame size={26} className="text-orange-500" />, color: "#EA580C", bg: "from-orange-50 to-amber-50", border: "border-orange-100" },
+            { label: "Grade Tier", value: tier.name, icon: <GraduationCap size={26} className="text-violet-600" />, color: "#6941F5", bg: "from-violet-50 to-purple-50", border: "border-violet-100" },
+            { label: "XP Earned", value: `${currentXP}/500`, icon: <Sparkles size={26} className="text-blue-500" />, color: "#3B82F6", bg: "from-blue-50 to-sky-50", border: "border-blue-100" },
+            { label: "Missions Done", value: `${student.missionsCompleted}`, icon: <CheckCircle2 size={26} className="text-emerald-500" />, color: "#22C55E", bg: "from-green-50 to-emerald-50", border: "border-green-100" },
           ].map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -232,10 +297,41 @@ export default function StudentDashboard() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-600">{stat.label}</p>
-                <p className="text-2xl font-900" style={{ color: stat.color }}>{stat.value}</p>
+                <p className="text-xl font-900" style={{ color: stat.color }}>{stat.value}</p>
               </div>
             </motion.div>
           ))}
+        </div>
+
+        {/* ── Curriculum Tier Announcement Banner ─────────────────────────── */}
+        <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-100 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center text-2xl flex-shrink-0">
+              {tier.icon}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <span className="px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-700 font-800 text-xs">
+                  Class {studentClass} • {tier.gradeRange}
+                </span>
+                <span className="font-900 text-slate-800 text-sm sm:text-base">
+                  {tier.title}
+                </span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
+                {tier.description}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0 w-full sm:w-auto">
+            <button
+              onClick={() => setShowClassModal(true)}
+              className="px-4 py-2 bg-violet-50 hover:bg-violet-100 text-violet-700 font-700 text-xs rounded-xl transition-colors cursor-pointer w-full sm:w-auto"
+            >
+              Switch Class Level
+            </button>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
@@ -244,9 +340,14 @@ export default function StudentDashboard() {
             {/* Continue Your Journey */}
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-900" style={{ color: "#172554" }}>Continue Your Journey</h2>
-                <Link href="/dashboard/worlds" className="text-sm text-violet-600 font-700 flex items-center gap-1 hover:gap-2 transition-all">
-                  View All <ArrowRight size={14} />
+                <div>
+                  <h2 className="text-xl font-900" style={{ color: "#172554" }}>
+                    Class {studentClass} Learning Worlds
+                  </h2>
+                  <p className="text-xs text-slate-400">Tailored curriculum missions for your grade level</p>
+                </div>
+                <Link href="/explore" className="text-sm text-violet-600 font-700 flex items-center gap-1 hover:gap-2 transition-all">
+                  World Map <ArrowRight size={14} />
                 </Link>
               </div>
 
@@ -275,9 +376,9 @@ export default function StudentDashboard() {
                       </div>
                       <span className="text-xs font-700" style={{ color: subj.color }}>{subj.progress}%</span>
                     </div>
-                    <Link href="/dashboard/worlds">
+                    <Link href={`/dashboard/worlds/${classWorlds[0]?.id || "world-1"}`}>
                       <motion.button
-                        className="mt-3 w-full py-2 rounded-xl text-xs font-700 border-2 transition-all"
+                        className="mt-3 w-full py-2 rounded-xl text-xs font-700 border-2 transition-all cursor-pointer"
                         style={{ borderColor: subj.color, color: subj.color }}
                         whileHover={{ background: subj.color, color: "white" }}
                       >
@@ -288,10 +389,10 @@ export default function StudentDashboard() {
                 ))}
               </div>
 
-              {/* World Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                {worlds.map((world) => {
-                  const prog = student.worldProgress.find(p => p.worldId === world.id);
+              {/* Dynamic Class World Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4">
+                {classWorlds.map((world) => {
+                  const prog = student.worldProgress.find((p) => p.worldId === world.id);
                   return <WorldCard key={world.id} world={world} progress={prog} />;
                 })}
               </div>
@@ -328,15 +429,30 @@ export default function StudentDashboard() {
                 />
               </div>
               <div className="flex justify-between text-xs text-slate-400 mt-2">
-                <span>{student.weeklyProgress} missions done</span>
-                <span>{student.weeklyGoal - student.weeklyProgress} remaining</span>
+                <span>{student.weeklyGoal - student.weeklyProgress} missions left</span>
+                <span>Reset in 3 days</span>
+              </div>
+            </motion.div>
+
+            {/* Learning Activities */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-900" style={{ color: "#172554" }}>Interactive Practice</h2>
+                <Link href="/dashboard/ai-lab" className="text-sm text-violet-600 font-700 flex items-center gap-1 hover:gap-2 transition-all">
+                  Lab <ArrowRight size={14} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {learningActivities.map((act) => (
+                  <ActivityCard key={act.id} activity={act} />
+                ))}
               </div>
             </motion.div>
           </div>
 
-          {/* ── Sidebar column ─────────────────────────────────────────────── */}
-          <div className="space-y-5">
-            {/* Aira AI Learning Buddy Card */}
+          {/* ── Sidebar column ──────────────────────────────────────────────── */}
+          <div className="space-y-6">
+            {/* Tara AI Learning Buddy Card */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
@@ -349,10 +465,10 @@ export default function StudentDashboard() {
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5">
-                    <h3 className="font-800 text-sm">Aira</h3>
+                    <h3 className="font-800 text-sm">Tara</h3>
                     <span className="text-[10px] bg-white/25 px-2 py-0.5 rounded-full font-700">AI Buddy</span>
                   </div>
-                  <p className="text-[11px] text-violet-200">Your Personal Learning Companion</p>
+                  <p className="text-[11px] text-violet-200">Your Class {studentClass} Companion</p>
                 </div>
               </div>
               <p className="text-xs text-violet-100 mb-3.5 leading-relaxed">
@@ -360,7 +476,7 @@ export default function StudentDashboard() {
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => sendMessage("Explain AI", "explain")}
+                  onClick={() => sendMessage(`Explain AI concepts for Class ${studentClass}`, "explain")}
                   className="py-2 px-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white font-700 text-xs text-center transition-colors flex items-center justify-center gap-1 cursor-pointer"
                 >
                   <Sparkles size={12} className="text-amber-300" /> Explain AI
@@ -379,10 +495,10 @@ export default function StudentDashboard() {
               <h2 className="text-xl font-900 mb-4" style={{ color: "#172554" }}>Recommended for You</h2>
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { icon: "🤖", label: "AI Basics", sub: "Learn how AI works", href: "/dashboard/worlds/world-1", color: "#6941F5" },
-                  { icon: "📝", label: "Daily Quiz", sub: "Test your knowledge", href: "/dashboard/quiz", color: "#22C55E" },
-                  { icon: "🌍", label: "Real World Challenge", sub: "Solve real problems", href: "/challenges", color: "#3B82F6" },
-                  { icon: "🏆", label: "Earn Certificates", sub: "Show your progress", href: "/achievements", color: "#FBBF24" },
+                  { icon: <Bot size={26} className="text-violet-600" />, label: "My Missions", sub: `Class ${studentClass} worlds`, href: `/dashboard/worlds/${classWorlds[0]?.id || "world-1"}`, color: "#6941F5" },
+                  { icon: <FileQuestion size={26} className="text-emerald-600" />, label: "Daily Quiz", sub: "Test your knowledge", href: "/dashboard/quiz", color: "#22C55E" },
+                  { icon: <Globe size={26} className="text-blue-600" />, label: "Explore Map", sub: "View full universe", href: "/explore", color: "#3B82F6" },
+                  { icon: <Trophy size={26} className="text-amber-500" />, label: "Achievements", sub: "Show your progress", href: "/achievements", color: "#FBBF24" },
                 ].map((item, i) => (
                   <Link key={item.label} href={item.href}>
                     <motion.div
@@ -392,7 +508,7 @@ export default function StudentDashboard() {
                       whileHover={{ scale: 1.04, y: -2 }}
                       className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 cursor-pointer"
                     >
-                      <div className="text-3xl mb-2">{item.icon}</div>
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center mb-2">{item.icon}</div>
                       <p className="text-xs font-800 text-slate-800 leading-tight">{item.label}</p>
                       <p className="text-xs text-slate-400 mt-0.5">{item.sub}</p>
                     </motion.div>
@@ -413,7 +529,7 @@ export default function StudentDashboard() {
                 {[
                   { icon: <Brain size={18} />, label: "AI Tutor", href: "/dashboard/ai-tutor", color: "#6941F5" },
                   { icon: <FlaskConical size={18} />, label: "AI Lab", href: "/dashboard/ai-lab", color: "#22C55E" },
-                  { icon: <BookOpen size={18} />, label: "My Missions", href: "/dashboard/worlds", color: "#3B82F6" },
+                  { icon: <BookOpen size={18} />, label: "World Missions", href: `/dashboard/worlds/${classWorlds[0]?.id || "world-1"}`, color: "#3B82F6" },
                   { icon: <Globe size={18} />, label: "Challenges", href: "/challenges", color: "#F59E0B" },
                 ].map((item) => (
                   <Link key={item.label} href={item.href}>
@@ -465,6 +581,22 @@ export default function StudentDashboard() {
           </div>
         </div>
       </main>
+
+      {/* Class Selection Modal */}
+      {showClassModal && (
+        <ClassSelectionModal
+          currentClass={studentClass}
+          onClose={() => setShowClassModal(false)}
+          onClassSelected={(newClass) => {
+            setShowClassModal(false);
+            setStudent((prev) => ({
+              ...prev,
+              classNumber: newClass,
+              class: formatClassName(newClass),
+            }));
+          }}
+        />
+      )}
     </div>
   );
 }

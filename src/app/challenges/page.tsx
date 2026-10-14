@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Filter, Search, ArrowRight, Users, Zap, Star, Clock, ChevronRight } from "lucide-react";
+import { Filter, Search, ArrowRight, Users, Zap, Star, Clock, ChevronRight, CheckCircle2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent, challenges } from "@/lib/mockData";
-import type { Challenge } from "@/lib/types";
+import { getStoredUser } from "@/lib/auth";
+import { getCompletedChallenges, recordChallengeCompletion } from "@/lib/progress/progressManager";
+import type { Challenge, Student } from "@/lib/types";
 
 const categories = ["All", "Environment", "Health", "Education", "Space", "Daily Life"];
 const difficulties = ["All", "Beginner", "Intermediate", "Advanced"];
@@ -17,7 +19,7 @@ const difficultyColors: Record<string, string> = {
   advanced: "#EF4444",
 };
 
-function ChallengeCard({ challenge, onStart }: { challenge: Challenge; onStart: (c: Challenge) => void }) {
+function ChallengeCard({ challenge, isDone, onStart }: { challenge: Challenge; isDone: boolean; onStart: (c: Challenge) => void }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -38,8 +40,10 @@ function ChallengeCard({ challenge, onStart }: { challenge: Challenge; onStart: 
         <div className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-xs font-700 text-white" style={{ background: difficultyColors[challenge.difficulty] }}>
           {challenge.difficulty.charAt(0).toUpperCase() + challenge.difficulty.slice(1)}
         </div>
-        {challenge.isCompleted && (
-          <div className="absolute top-3 left-3 w-7 h-7 bg-green-500 rounded-full flex items-center justify-center text-white text-sm">✓</div>
+        {isDone && (
+          <div className="absolute top-3 left-3 px-2 py-0.5 bg-green-500 rounded-full flex items-center gap-1 text-white text-xs font-bold shadow">
+            <CheckCircle2 size={12} /> Done
+          </div>
         )}
       </div>
 
@@ -68,21 +72,23 @@ function ChallengeCard({ challenge, onStart }: { challenge: Challenge; onStart: 
 
         <motion.button
           onClick={() => onStart(challenge)}
-          className="w-full py-2.5 rounded-xl text-sm font-700 text-white flex items-center justify-center gap-1.5 shadow-md"
-          style={{ background: challenge.color }}
+          className="w-full py-2.5 rounded-xl text-sm font-700 text-white flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+          style={{ background: isDone ? "#059669" : challenge.color }}
           whileHover={{ scale: 1.04 }}
           whileTap={{ scale: 0.97 }}
         >
-          {challenge.isCompleted ? "View Solution" : "Take Challenge"} <ArrowRight size={14} />
+          {isDone ? "Review Challenge" : "Take Challenge"} <ArrowRight size={14} />
         </motion.button>
       </div>
     </motion.div>
   );
 }
 
-function ChallengeModal({ challenge, onClose }: { challenge: Challenge; onClose: () => void }) {
+function ChallengeModal({ challenge, onClose, onClaimed }: { challenge: Challenge; onClose: () => void; onClaimed?: (challengeId: string) => void }) {
   const [started, setStarted] = useState(false);
   const [step, setStep] = useState(0);
+  const [claiming, setClaiming] = useState(false);
+  const [claimed, setClaimed] = useState(false);
 
   const steps = [
     { title: "Understand the Problem", icon: "📖", desc: "Read and understand the challenge brief" },
@@ -90,6 +96,32 @@ function ChallengeModal({ challenge, onClose }: { challenge: Challenge; onClose:
     { title: "Design Your Solution", icon: "✏️", desc: "Sketch your AI-powered solution" },
     { title: "Submit & Share", icon: "🚀", desc: "Share your solution with the community" },
   ];
+
+  const handleClaim = async () => {
+    setClaiming(true);
+    try {
+      recordChallengeCompletion(challenge.id, challenge.xpReward);
+      await fetch("/api/challenges/complete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challengeId: challenge.id }),
+      });
+      setClaimed(true);
+      if (onClaimed) onClaimed(challenge.id);
+      setTimeout(() => {
+        onClose();
+      }, 900);
+    } catch {
+      recordChallengeCompletion(challenge.id, challenge.xpReward);
+      setClaimed(true);
+      if (onClaimed) onClaimed(challenge.id);
+      setTimeout(() => {
+        onClose();
+      }, 900);
+    } finally {
+      setClaiming(false);
+    }
+  };
 
   return (
     <motion.div
@@ -109,7 +141,7 @@ function ChallengeModal({ challenge, onClose }: { challenge: Challenge; onClose:
         {/* Modal header */}
         <div className="h-32 rounded-t-3xl flex items-center justify-center relative" style={{ background: challenge.bgColor }}>
           <span className="text-6xl">{challenge.icon}</span>
-          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-slate-600 hover:bg-white">✕</button>
+          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center text-slate-600 hover:bg-white cursor-pointer">✕</button>
         </div>
 
         <div className="p-6">
@@ -151,7 +183,7 @@ function ChallengeModal({ challenge, onClose }: { challenge: Challenge; onClose:
                   <p className="text-sm font-700 text-slate-700">{s.title}</p>
                   <p className="text-xs text-slate-400">{s.desc}</p>
                 </div>
-                {started && i <= step && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto text-green-500">✓</motion.div>}
+                {started && i <= step && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="ml-auto text-green-500 font-bold">✓</motion.div>}
               </motion.div>
             ))}
           </div>
@@ -159,7 +191,7 @@ function ChallengeModal({ challenge, onClose }: { challenge: Challenge; onClose:
           {!started ? (
             <motion.button
               onClick={() => setStarted(true)}
-              className="w-full py-4 rounded-2xl text-sm font-800 text-white shadow-lg"
+              className="w-full py-4 rounded-2xl text-sm font-800 text-white shadow-lg cursor-pointer"
               style={{ background: challenge.color }}
               whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.97 }}
@@ -169,17 +201,23 @@ function ChallengeModal({ challenge, onClose }: { challenge: Challenge; onClose:
           ) : step < steps.length - 1 ? (
             <motion.button
               onClick={() => setStep(s => s + 1)}
-              className="w-full py-4 rounded-2xl text-sm font-800 text-white shadow-lg btn-primary"
+              className="w-full py-4 rounded-2xl text-sm font-800 text-white shadow-lg btn-primary cursor-pointer"
               whileHover={{ scale: 1.04 }}
             >
               Next Step: {steps[step + 1].title} →
             </motion.button>
           ) : (
             <motion.div className="text-center">
-              <div className="text-4xl mb-2">🎉</div>
-              <p className="font-800 text-green-700 mb-3">Challenge Completed!</p>
-              <button onClick={onClose} className="btn-primary px-8 py-3 rounded-2xl text-sm font-700">
-                Claim +{challenge.xpReward} XP
+              <div className="text-4xl mb-2">{claimed ? "🌟" : "🎉"}</div>
+              <p className="font-800 text-green-700 mb-3">
+                {claimed ? "Reward Claimed!" : "Challenge Completed!"}
+              </p>
+              <button
+                onClick={handleClaim}
+                disabled={claiming || claimed}
+                className="btn-primary px-8 py-3 rounded-2xl text-sm font-700 cursor-pointer disabled:opacity-60"
+              >
+                {claiming ? "Saving..." : claimed ? "Claimed ✓" : `Claim +${challenge.xpReward} XP`}
               </button>
             </motion.div>
           )}
@@ -190,13 +228,37 @@ function ChallengeModal({ challenge, onClose }: { challenge: Challenge; onClose:
 }
 
 export default function ChallengesPage() {
-  const student = mockStudent;
+  const [userState, setUserState] = useState(mockStudent);
+  const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [activeDifficulty, setActiveDifficulty] = useState("All");
   const [search, setSearch] = useState("");
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
 
-  const filtered = challenges.filter(c => {
+  useEffect(() => {
+    const sync = () => {
+      setCompletedIds(getCompletedChallenges());
+      const u = getStoredUser();
+      if (u && u.role === "student") {
+        setUserState(prev => ({
+          ...prev,
+          ...(u as Student),
+        }));
+      }
+    };
+    sync();
+    window.addEventListener("tara-progress-change", sync);
+    window.addEventListener("tara-auth-change", sync);
+    return () => {
+      window.removeEventListener("tara-progress-change", sync);
+      window.removeEventListener("tara-auth-change", sync);
+    };
+  }, []);
+
+  const filtered = challenges.map(c => ({
+    ...c,
+    isCompleted: completedIds.includes(c.id) || c.isCompleted,
+  })).filter(c => {
     const catMatch = activeCategory === "All" || c.category.toLowerCase().replace(/\s/g, "") === activeCategory.toLowerCase().replace(/\s/g, "");
     const diffMatch = activeDifficulty === "All" || c.difficulty === activeDifficulty.toLowerCase();
     const searchMatch = !search || c.title.toLowerCase().includes(search.toLowerCase()) || c.description.toLowerCase().includes(search.toLowerCase());
@@ -205,7 +267,7 @@ export default function ChallengesPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "#EAF5FF" }}>
-      <Navigation role="student" userName={student.name} xp={student.xp} streak={student.streak} level={student.level} />
+      <Navigation role="student" userName={userState.name} xp={userState.xp} streak={userState.streak} level={userState.level} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Header */}
@@ -277,7 +339,12 @@ export default function ChallengesPage() {
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map(c => (
-              <ChallengeCard key={c.id} challenge={c} onStart={setSelectedChallenge} />
+              <ChallengeCard
+                key={c.id}
+                challenge={c}
+                isDone={Boolean(c.isCompleted)}
+                onStart={setSelectedChallenge}
+              />
             ))}
           </div>
         )}
@@ -286,7 +353,13 @@ export default function ChallengesPage() {
       {/* Challenge Modal */}
       <AnimatePresence>
         {selectedChallenge && (
-          <ChallengeModal challenge={selectedChallenge} onClose={() => setSelectedChallenge(null)} />
+          <ChallengeModal
+            challenge={selectedChallenge}
+            onClose={() => setSelectedChallenge(null)}
+            onClaimed={(id) => {
+              setCompletedIds(prev => prev.includes(id) ? prev : [...prev, id]);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

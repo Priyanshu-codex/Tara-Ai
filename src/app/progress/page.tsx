@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from "recharts";
-import { TrendingUp, Target, BookOpen, Brain, ArrowRight } from "lucide-react";
+import { TrendingUp, Target, BookOpen, Brain, ArrowRight, Sparkles, Bot, Zap, Trophy, FlaskConical, CheckCircle2 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent, weeklyData, monthlyData, subjectPerformance } from "@/lib/mockData";
+import { getStoredUser } from "@/lib/auth";
+import type { Student } from "@/lib/types";
 import Link from "next/link";
 
 type Filter = "weekly" | "monthly" | "overall";
@@ -33,14 +35,30 @@ const revisionTopics = [
 ];
 
 const nextSteps = [
-  { icon: "🔮", label: "Spot the Pattern Mission", href: "/dashboard/mission/spot-the-pattern", color: "#6941F5" },
-  { icon: "📊", label: "Machine Learning World", href: "/dashboard/worlds/world-2", color: "#7C3AED" },
-  { icon: "💬", label: "Ask AI Tutor", href: "/dashboard/ai-tutor", color: "#22C55E" },
+  { icon: <Sparkles size={18} className="text-violet-600" />, label: "Spot the Pattern Mission", href: "/dashboard/mission/m1-2", color: "#6941F5" },
+  { icon: <Brain size={18} className="text-purple-600" />, label: "Machine Learning World", href: "/dashboard/worlds/world-2", color: "#7C3AED" },
+  { icon: <Bot size={18} className="text-emerald-600" />, label: "Ask AI Tutor", href: "/dashboard/ai-tutor", color: "#22C55E" },
 ];
 
 export default function ProgressPage() {
-  const student = mockStudent;
+  const [student, setStudent] = useState(mockStudent);
   const [filter, setFilter] = useState<Filter>("weekly");
+
+  useEffect(() => {
+    const sync = () => {
+      const u = getStoredUser();
+      if (u && u.role === "student") {
+        setStudent(prev => ({ ...prev, ...(u as Student) }));
+      }
+    };
+    sync();
+    window.addEventListener("tara-auth-change", sync);
+    window.addEventListener("tara-progress-change", sync);
+    return () => {
+      window.removeEventListener("tara-auth-change", sync);
+      window.removeEventListener("tara-progress-change", sync);
+    };
+  }, []);
 
   const chartData = filter === "weekly" ? weeklyData : filter === "monthly" ? monthlyData : overallData;
 
@@ -225,9 +243,9 @@ export default function ProgressPage() {
                 <Link href="/achievements" className="text-xs text-violet-600 font-700">View All</Link>
               </div>
               {[
-                { icon: "📐", title: "Completed Linear Equations", xp: 80, time: "Today" },
-                { icon: "🧪", title: "Scored 90% in Science Quiz", xp: 30, time: "Yesterday" },
-                { icon: "⚡", title: "Completed 5 Daily Challenges", xp: 100, time: "2 days ago" },
+                { icon: <Target size={16} className="text-violet-600" />, title: "Completed Pattern Challenges", xp: 80, time: "Today" },
+                { icon: <FlaskConical size={16} className="text-emerald-600" />, title: "Scored 90% in AI Quiz", xp: 30, time: "Yesterday" },
+                { icon: <Zap size={16} className="text-amber-500 fill-amber-500" />, title: "Completed 5 Daily Missions", xp: 100, time: "2 days ago" },
               ].map((ach, i) => (
                 <motion.div
                   key={ach.title}
@@ -236,7 +254,7 @@ export default function ProgressPage() {
                   transition={{ delay: 0.4 + i * 0.1 }}
                   className="flex items-center gap-3 py-2.5 border-b border-slate-50 last:border-0"
                 >
-                  <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center text-base">{ach.icon}</div>
+                  <div className="w-8 h-8 rounded-xl bg-violet-50 flex items-center justify-center flex-shrink-0">{ach.icon}</div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-700 text-slate-700 truncate">{ach.title}</p>
                     <p className="text-xs text-slate-400">{ach.time}</p>
@@ -253,15 +271,19 @@ export default function ProgressPage() {
               transition={{ delay: 0.3 }}
               className="bg-violet-50 rounded-3xl p-5 border border-violet-100"
             >
-              <h2 className="text-lg font-900 mb-4 text-violet-800">🚀 Suggested Next Steps</h2>
+              <h2 className="text-lg font-900 mb-4 text-violet-800 flex items-center gap-2">
+                <Sparkles size={18} className="text-violet-600" /> Suggested Next Steps
+              </h2>
               <div className="space-y-2">
-                {nextSteps.map((step, i) => (
+                {nextSteps.map((step) => (
                   <Link key={step.label} href={step.href}>
                     <motion.div
                       whileHover={{ x: 4 }}
                       className="flex items-center gap-3 px-3 py-2.5 bg-white rounded-xl hover:shadow-sm transition-all"
                     >
-                      <span className="text-xl">{step.icon}</span>
+                      <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+                        {step.icon}
+                      </div>
                       <span className="text-sm font-700 text-slate-700 flex-1">{step.label}</span>
                       <ArrowRight size={14} className="text-slate-300" />
                     </motion.div>

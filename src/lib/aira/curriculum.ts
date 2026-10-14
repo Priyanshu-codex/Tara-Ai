@@ -1,4 +1,4 @@
-// Aira Curriculum & Mission Context Knowledge Base
+// Tara Curriculum & Mission Context Knowledge Base
 import { worlds } from "@/lib/mockData";
 import type { AiraMissionContext } from "./types";
 

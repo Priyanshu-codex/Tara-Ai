@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Star, Flame, Trophy, Edit3, ArrowRight, Lock, CheckCircle2, TrendingUp, Award, BookOpen, Target } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent, worlds, recentAchievements } from "@/lib/mockData";
+import { getStoredUser } from "@/lib/auth";
+import type { Student } from "@/lib/types";
 import Image from "next/image";
 
 function BadgeCard({ badge, delay }: { badge: typeof mockStudent.badges[0]; delay: number }) {
@@ -77,8 +79,28 @@ function BadgeCard({ badge, delay }: { badge: typeof mockStudent.badges[0]; dela
 }
 
 export default function AchievementsPage() {
-  const student = mockStudent;
+  const [student, setStudent] = useState(mockStudent);
   const [activeTab, setActiveTab] = useState<"badges" | "certificates" | "history" | "mastery">("badges");
+  const [selectedCert, setSelectedCert] = useState<{ title: string; desc: string; icon: string; date: string; color: string } | null>(null);
+
+  useEffect(() => {
+    const sync = () => {
+      const u = getStoredUser();
+      if (u && u.role === "student") {
+        setStudent(prev => ({
+          ...prev,
+          ...(u as Student),
+        }));
+      }
+    };
+    sync();
+    window.addEventListener("tara-auth-change", sync);
+    window.addEventListener("tara-progress-change", sync);
+    return () => {
+      window.removeEventListener("tara-auth-change", sync);
+      window.removeEventListener("tara-progress-change", sync);
+    };
+  }, []);
 
   const tabs = [
     { id: "badges", label: "My Badges", icon: "🏅" },
@@ -132,23 +154,25 @@ export default function AchievementsPage() {
             <div className="flex-1 text-center sm:text-left">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                 <h1 className="text-2xl font-900">{student.name}</h1>
-                <button className="self-center sm:self-auto flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl transition-colors">
-                  <Edit3 size={12} /> Edit Profile
-                </button>
+                <Link href="/profile" className="self-center sm:self-auto">
+                  <span className="flex items-center gap-1.5 text-xs bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-xl transition-colors cursor-pointer">
+                    <Edit3 size={12} /> Edit Profile
+                  </span>
+                </Link>
               </div>
-              <p className="text-violet-200 mb-3">{student.levelName} • Class 8 • {student.missionsCompleted} Missions</p>
+              <p className="text-violet-200 mb-3">{student.levelName || "AI Explorer"} • Class 8 • {student.missionsCompleted || 9} Missions</p>
 
               {/* XP bar */}
               <div className="max-w-xs">
                 <div className="flex justify-between text-xs text-violet-200 mb-1">
                   <span>Level {student.level}</span>
-                  <span>{student.xp}/500 XP</span>
+                  <span>{student.xp} XP</span>
                 </div>
                 <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                   <motion.div
                     className="h-full bg-white rounded-full"
                     initial={{ width: 0 }}
-                    animate={{ width: `${(student.xp / 500) * 100}%` }}
+                    animate={{ width: `${Math.min(100, (student.xp / 1000) * 100)}%` }}
                     transition={{ duration: 1.2 }}
                   />
                 </div>
@@ -175,7 +199,7 @@ export default function AchievementsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
           {[
             { label: "Streak", value: `${student.streak} Days`, icon: "🔥", color: "#EA580C" },
-            { label: "Missions", value: `${student.missionsCompleted}`, icon: "✅", color: "#22C55E" },
+            { label: "Missions", value: `${student.missionsCompleted || 9}`, icon: "✅", color: "#22C55E" },
             { label: "Badges", value: `${student.badges.length}`, icon: "🏅", color: "#6941F5" },
             { label: "Global Rank", value: `Top 5%`, icon: "🏆", color: "#F59E0B" },
           ].map((stat, i) => (
@@ -199,7 +223,7 @@ export default function AchievementsPage() {
             <motion.button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-700 transition-all ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-700 transition-all cursor-pointer ${
                 activeTab === tab.id ? "bg-violet-600 text-white shadow-md" : "bg-white text-slate-600 border border-slate-200"
               }`}
               whileHover={{ scale: 1.04 }}
@@ -266,11 +290,12 @@ export default function AchievementsPage() {
                       <p className="text-xs text-slate-400 mt-1">Earned: {cert.date}</p>
                     </div>
                     <motion.button
-                      className="px-4 py-2 rounded-xl text-sm font-700 border-2 transition-all"
+                      onClick={() => setSelectedCert(cert)}
+                      className="px-4 py-2 rounded-xl text-sm font-700 border-2 transition-all cursor-pointer"
                       style={{ borderColor: cert.color, color: cert.color }}
-                      whileHover={{ background: cert.color, color: "white" }}
+                      whileHover={{ scale: 1.05 }}
                     >
-                      Download
+                      View Certificate
                     </motion.button>
                   </motion.div>
                 ))}
@@ -345,6 +370,75 @@ export default function AchievementsPage() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* Certificate Preview Modal */}
+      <AnimatePresence>
+        {selectedCert && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setSelectedCert(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-3xl max-w-xl w-full p-8 shadow-2xl relative border-4 border-yellow-300 text-center"
+              onClick={e => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setSelectedCert(null)}
+                className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center cursor-pointer"
+              >
+                ✕
+              </button>
+
+              <div className="text-5xl mb-2">{selectedCert.icon}</div>
+              <div className="text-xs uppercase tracking-widest text-violet-600 font-900 mb-1">
+                Certificate of Achievement
+              </div>
+              <h2 className="text-2xl font-900 text-slate-800 mb-2">
+                {selectedCert.title}
+              </h2>
+              <p className="text-sm text-slate-500 mb-6">
+                This certifies that <span className="font-bold text-slate-800 underline decoration-violet-500">{student.name}</span> has successfully completed the curriculum and demonstrated excellence in:
+              </p>
+
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-6 text-sm text-slate-700 font-semibold">
+                &ldquo;{selectedCert.desc}&rdquo;
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-slate-400 border-t border-slate-100 pt-4 mb-6">
+                <div className="text-left">
+                  <p className="font-bold text-slate-600">Issued Date</p>
+                  <p>{selectedCert.date}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-bold text-slate-600">Verified Platform</p>
+                  <p>TARA AI & Tara Learning</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 justify-center">
+                <button
+                  onClick={() => window.print()}
+                  className="btn-primary px-6 py-2.5 rounded-xl text-sm font-700 flex items-center gap-2 cursor-pointer"
+                >
+                  🖨️ Print / Save PDF
+                </button>
+                <button
+                  onClick={() => setSelectedCert(null)}
+                  className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-2.5 rounded-xl text-sm font-700 cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

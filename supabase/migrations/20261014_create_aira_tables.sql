@@ -1,5 +1,5 @@
 -- ==============================================================================
--- TARA AI Platform — Aira Learning Buddy Database Migration
+-- TARA AI Platform — Tara Learning Buddy Database Migration
 -- Tables: aira_conversations, aira_messages, aira_quiz_attempts
 -- Row Level Security (RLS) enabled with strict user isolation policies
 -- ==============================================================================
@@ -11,7 +11,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE IF NOT EXISTS public.aira_conversations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id TEXT NOT NULL,
-    title TEXT NOT NULL DEFAULT 'Learning with Aira',
+    title TEXT NOT NULL DEFAULT 'Learning with Tara',
     current_world_id TEXT,
     current_mission_id TEXT,
     student_age INTEGER,

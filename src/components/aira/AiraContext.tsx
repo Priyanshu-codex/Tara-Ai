@@ -19,8 +19,11 @@ interface AiraContextType {
   missionContext: AiraMissionContext | null;
   setMissionContext: (ctx: AiraMissionContext | null) => void;
   openAiraWithMission: (mission: AiraMissionContext) => void;
+  openTaraWithMission: (mission: AiraMissionContext) => void;
   openAiraForQuiz: () => void;
+  openTaraForQuiz: () => void;
   openAiraWithTopic: (topic: string) => void;
+  openTaraWithTopic: (topic: string) => void;
   messages: AiraMessage[];
   isTyping: boolean;
   sendMessage: (text: string, actionType?: AiraChatRequest["actionType"]) => Promise<void>;
@@ -36,7 +39,7 @@ const INITIAL_WELCOME_MESSAGE: AiraMessage = {
   id: "welcome-1",
   role: "assistant",
   content:
-    "Hi there! I'm **Aira**, your AI Learning Buddy! 🌟\n\nI can help you understand how AI works, give you clues on learning missions, or challenge you with interactive quizzes!\n\nWhat would you like to explore today?",
+    "Hi there! I'm **Tara**, your AI Learning Buddy! 🌟\n\nI can help you understand how AI works, give you clues on learning missions, or challenge you with interactive quizzes!\n\nWhat would you like to explore today?",
   timestamp: new Date().toISOString(),
   quickReplies: ["Explain AI", "Help Me With This Mission", "Quiz Me"],
 };
@@ -141,7 +144,7 @@ export function AiraProvider({ children }: { children: React.ReactNode }) {
       };
 
       try {
-        const res = await fetch("/api/aira/chat", {
+        const res = await fetch("/api/tara/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -179,7 +182,7 @@ export function AiraProvider({ children }: { children: React.ReactNode }) {
           setMessages((prev) => [...prev, errorMsg]);
         }
       } catch (err) {
-        console.error("Failed to send message to Aira:", err);
+        console.error("Failed to send message to Tara:", err);
         const networkErrorMsg: AiraMessage = {
           id: `net-err-${Date.now()}`,
           role: "assistant",
@@ -220,7 +223,7 @@ export function AiraProvider({ children }: { children: React.ReactNode }) {
       };
 
       try {
-        const res = await fetch("/api/aira/chat", {
+        const res = await fetch("/api/tara/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -289,8 +292,11 @@ export function AiraProvider({ children }: { children: React.ReactNode }) {
         missionContext,
         setMissionContext,
         openAiraWithMission,
+        openTaraWithMission: openAiraWithMission,
         openAiraForQuiz,
+        openTaraForQuiz: openAiraForQuiz,
         openAiraWithTopic,
+        openTaraWithTopic: openAiraWithTopic,
         messages,
         isTyping,
         sendMessage,
@@ -312,3 +318,7 @@ export function useAira() {
   }
   return context;
 }
+
+export const useTara = useAira;
+export const TaraProvider = AiraProvider;
+export const TaraContext = AiraContext;

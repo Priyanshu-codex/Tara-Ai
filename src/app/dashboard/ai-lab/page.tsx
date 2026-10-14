@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, RefreshCw, Play, CheckCircle2, Upload, Trash2, Zap } from "lucide-react";
+import { Plus, RefreshCw, Play, CheckCircle2, Upload, Trash2, Zap, FlaskConical, Camera, Brain, TestTube, Sparkles } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent, sampleCatImages, sampleDogImages } from "@/lib/mockData";
+import { getStoredUser } from "@/lib/auth";
+import { recordMissionCompletion } from "@/lib/progress/progressManager";
+import type { Student } from "@/lib/types";
 import Image from "next/image";
 
 type LabeledImage = { id: string; emoji: string; label: "Cat" | "Dog"; color: string };
@@ -12,7 +15,7 @@ type LabeledImage = { id: string; emoji: string; label: "Cat" | "Dog"; color: st
 type Phase = "collect" | "train" | "test" | "results";
 
 export default function AILabPage() {
-  const student = mockStudent;
+  const [student, setStudent] = useState(mockStudent);
   const [phase, setPhase] = useState<Phase>("collect");
   const [catImages, setCatImages] = useState<LabeledImage[]>([sampleCatImages[0] as LabeledImage, sampleCatImages[1] as LabeledImage]);
   const [dogImages, setDogImages] = useState<LabeledImage[]>([sampleDogImages[0] as LabeledImage, sampleDogImages[1] as LabeledImage]);
@@ -20,6 +23,18 @@ export default function AILabPage() {
   const [isTraining, setIsTraining] = useState(false);
   const [prediction, setPrediction] = useState<{ label: string; confidence: number; other: number } | null>(null);
   const [selectedTestImage, setSelectedTestImage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sync = () => {
+      const u = getStoredUser();
+      if (u && u.role === "student") {
+        setStudent(prev => ({ ...prev, ...(u as Student) }));
+      }
+    };
+    sync();
+    window.addEventListener("tara-auth-change", sync);
+    return () => window.removeEventListener("tara-auth-change", sync);
+  }, []);
 
   const addCat = () => {
     if (catImages.length < 6) {
@@ -56,6 +71,7 @@ export default function AILabPage() {
       other: isCatPrediction ? 13 : 18,
     });
     setPhase("results");
+    recordMissionCompletion("m1-3", "world-1", 3, 50);
   };
 
   const resetExperiment = () => {
@@ -81,8 +97,8 @@ export default function AILabPage() {
           className="mb-6"
         >
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ background: "linear-gradient(135deg, #D1FAE5, #A7F3D0)" }}>
-              🔬
+            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-emerald-700 shadow-inner" style={{ background: "linear-gradient(135deg, #D1FAE5, #A7F3D0)" }}>
+              <FlaskConical size={24} />
             </div>
             <div>
               <h1 className="text-2xl font-900" style={{ color: "#172554" }}>Train Your Own AI</h1>
@@ -93,10 +109,10 @@ export default function AILabPage() {
           {/* Phase stepper */}
           <div className="flex items-center gap-2">
             {[
-              { id: "collect", label: "1. Collect Data", icon: "📸" },
-              { id: "train", label: "2. Train Model", icon: "🧠" },
-              { id: "test", label: "3. Test", icon: "🧪" },
-              { id: "results", label: "4. Improve", icon: "✨" },
+              { id: "collect", label: "1. Collect Data", icon: <Camera size={14} /> },
+              { id: "train", label: "2. Train Model", icon: <Brain size={14} /> },
+              { id: "test", label: "3. Test", icon: <TestTube size={14} /> },
+              { id: "results", label: "4. Improve", icon: <Sparkles size={14} /> },
             ].map((step, i, arr) => (
               <div key={step.id} className="flex items-center gap-2">
                 <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-700 ${

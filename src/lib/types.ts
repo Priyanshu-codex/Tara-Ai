@@ -2,6 +2,24 @@
 
 export type UserRole = "student" | "admin";
 
+export type CurriculumTierId = "tier-1-3" | "tier-4-5" | "tier-6-8" | "tier-9-10" | "tier-11-12";
+
+export interface CurriculumTierInfo {
+  id: CurriculumTierId;
+  name: string;
+  title?: string;
+  minClass: number;
+  maxClass: number;
+  classes: number[];
+  classRangeLabel: string;
+  gradeRange?: string;
+  ageRangeLabel: string;
+  description: string;
+  icon: string;
+  color: string;
+  focusTopics: string[];
+}
+
 export interface User {
   id: string;
   name: string;
@@ -9,6 +27,7 @@ export interface User {
   role: UserRole;
   avatar?: string;
   class?: string;
+  classNumber?: number;
   school?: string;
   age?: number;
   isDemo?: boolean;
@@ -21,6 +40,7 @@ export interface Student extends User {
   levelName: string;
   streak: number;
   missionsCompleted: number;
+  stars?: number;
   badges: Badge[];
   worldProgress: WorldProgress[];
   weeklyGoal: number;
@@ -45,7 +65,9 @@ export interface World {
   isLocked: boolean;
   missions: Mission[];
   image?: string;
-  theme: "ai" | "ml" | "cv" | "nlp" | "rai";
+  theme: "ai" | "ml" | "cv" | "nlp" | "rai" | "foundations" | "algorithms" | "deep-learning";
+  classRange?: [number, number];
+  tierId?: CurriculumTierId;
 }
 
 export interface WorldProgress {
@@ -65,6 +87,8 @@ export interface Mission {
   isCompleted: boolean;
   isLocked: boolean;
   order: number;
+  classRange?: [number, number];
+  tierId?: CurriculumTierId;
 }
 
 export interface Badge {
