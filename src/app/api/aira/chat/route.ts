@@ -49,18 +49,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 3. Process with Aira orchestrator
+    // 3. Process with Tara orchestrator
     const result = await generateAiraResponse(body);
 
     return NextResponse.json(result, { status: 200 });
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : "Unknown internal server error.";
-    console.error("Aira Chat API Error:", errorMsg);
+    console.error("Tara Chat API Error:", errorMsg);
 
     return NextResponse.json(
       {
         success: false,
-        error: "Aira is momentarily recharging her circuits. Please try again in a few seconds!",
+        error: "Tara is momentarily recharging her circuits. Please try again in a few seconds!",
         details: process.env.NODE_ENV === "development" ? errorMsg : undefined,
       },
       { status: 500 }

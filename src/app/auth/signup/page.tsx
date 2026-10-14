@@ -9,11 +9,14 @@ import {
   CheckCircle2, AlertCircle, BookOpen, Shield, Sparkles
 } from "lucide-react";
 import Image from "next/image";
-import { loginAsDemo, loginUser } from "@/lib/auth";
+import { loginAsDemo, loginUser, parseClassNumber } from "@/lib/auth";
 
 type Role = "student" | "admin";
 
-const grades = ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"];
+const grades = [
+  "Class 1", "Class 2", "Class 3", "Class 4", "Class 5", "Class 6",
+  "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"
+];
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -58,15 +61,24 @@ export default function SignUpPage() {
     setLoading(true);
     await new Promise(r => setTimeout(r, 1200));
     setLoading(false);
-    setSuccess(true);
+    const parsed = role === "student" ? parseClassNumber(form.grade) : null;
+    const classNum = parsed !== null ? parsed : undefined;
     loginUser({
       name: form.fullName,
       email: form.email,
       role,
       class: form.grade,
+      classNumber: classNum,
       school: form.school,
     });
-    await new Promise(r => setTimeout(r, 1200));
+    setSuccess(true);
+    // Background sync with profile API
+    fetch("/api/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ classNumber: classNum, school: form.school }),
+    }).catch(() => {});
+    await new Promise(r => setTimeout(r, 1600));
     router.push("/dashboard");
   };
 
@@ -76,19 +88,19 @@ export default function SignUpPage() {
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="text-center p-8"
+          className="text-center p-8 bg-white rounded-3xl shadow-xl border border-violet-100 max-w-md mx-4"
         >
           <motion.div
             animate={{ scale: [0, 1.2, 1] }}
             transition={{ duration: 0.5 }}
-            className="text-8xl mb-6"
+            className="w-20 h-20 rounded-3xl bg-violet-100 text-violet-600 flex items-center justify-center mx-auto mb-6 shadow-inner"
           >
-            🎉
+            <Sparkles size={40} />
           </motion.div>
           <h2 className="text-3xl font-900 mb-2" style={{ color: "#172554" }}>Welcome to TARA!</h2>
-          <p className="text-slate-500 mb-4">Your account is ready. Taking you to your dashboard...</p>
+          <p className="text-slate-500 mb-6">Your personalized learning world is ready. Taking you to your dashboard...</p>
           <motion.div
-            className="w-12 h-1 rounded-full mx-auto"
+            className="w-24 h-1.5 rounded-full mx-auto"
             style={{ background: "#6941F5" }}
             animate={{ scaleX: [0, 1] }}
             transition={{ duration: 1.5 }}

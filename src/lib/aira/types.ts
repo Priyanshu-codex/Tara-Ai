@@ -1,4 +1,4 @@
-// Aira — Your AI Learning Buddy: Type Definitions
+// Tara — Your AI Learning Buddy: Type Definitions
 
 export type AiraRole = "user" | "assistant" | "system";
 
@@ -113,3 +113,14 @@ export interface AiraChatResponse {
   followUps?: string[];
   error?: string;
 }
+
+// Aliases for Tara Chatbot
+export type TaraRole = AiraRole;
+export type TaraMissionContext = AiraMissionContext;
+export type TaraQuizQuestion = AiraQuizQuestion;
+export type TaraQuizSubmission = AiraQuizSubmission;
+export type TaraQuizResult = AiraQuizResult;
+export type TaraMessage = AiraMessage;
+export type TaraConversation = AiraConversation;
+export type TaraChatRequest = AiraChatRequest;
+export type TaraChatResponse = AiraChatResponse;

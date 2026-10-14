@@ -26,7 +26,7 @@ export default function AiraLauncher() {
           boxShadow:
             "0 12px 30px -5px rgba(105, 65, 245, 0.4), 0 4px 10px rgba(0, 0, 0, 0.05)",
         }}
-        aria-label="Open Aira AI Learning Buddy"
+        aria-label="Open Tara AI Learning Buddy"
       >
         {/* Animated Robot Avatar Container */}
         <div className="relative">
@@ -43,7 +43,7 @@ export default function AiraLauncher() {
         {/* Text Label */}
         <div className="text-left">
           <div className="flex items-center gap-1 leading-tight">
-            <span className="font-800 text-sm tracking-wide">Aira</span>
+            <span className="font-800 text-sm tracking-wide">Tara</span>
             <Sparkles size={11} className="text-amber-300" />
           </div>
           <span className="text-[10px] text-violet-200 block font-600 leading-tight">

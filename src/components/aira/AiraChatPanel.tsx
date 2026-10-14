@@ -207,7 +207,7 @@ export default function AiraChatPanel() {
 
             <div>
               <div className="flex items-center gap-1.5">
-                <h3 className="font-800 text-sm sm:text-base leading-tight">Aira</h3>
+                <h3 className="font-800 text-sm sm:text-base leading-tight">Tara</h3>
                 <span className="text-[11px] bg-white/25 px-2 py-0.5 rounded-full font-700">
                   AI Buddy
                 </span>
@@ -238,7 +238,7 @@ export default function AiraChatPanel() {
             <button
               onClick={() => setIsOpen(false)}
               className="p-1.5 hover:bg-white/15 rounded-xl transition-colors text-white/90 hover:text-white ml-0.5"
-              title="Close Aira"
+              title="Close Tara"
             >
               <X size={18} />
             </button>
@@ -408,7 +408,7 @@ export default function AiraChatPanel() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask Aira anything about AI or your mission..."
+              placeholder="Ask Tara anything about AI or your mission..."
               disabled={isTyping}
               className="flex-1 bg-transparent text-sm text-slate-800 placeholder-slate-400 outline-none py-1"
               maxLength={1000}

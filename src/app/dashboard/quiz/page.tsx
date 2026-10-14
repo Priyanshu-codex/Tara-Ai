@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, X, Lightbulb, RotateCcw, ArrowRight, Zap, Bot, Sparkles } from "lucide-react";
+import { ArrowLeft, Check, X, Lightbulb, RotateCcw, ArrowRight, Zap, Bot, Sparkles, Trophy, Star, Target, TrendingUp, BookOpen, FileQuestion } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import { mockStudent } from "@/lib/mockData";
+import { getStoredUser } from "@/lib/auth";
+import type { Student } from "@/lib/types";
 import { useAira } from "@/components/aira/AiraContext";
 
 const questions = [
@@ -47,7 +49,7 @@ const questions = [
 ];
 
 export default function DailyQuizPage() {
-  const student = mockStudent;
+  const [student, setStudent] = useState(mockStudent);
   const { openAiraWithTopic, openAiraForQuiz } = useAira();
   const [currentQ, setCurrentQ] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -56,6 +58,18 @@ export default function DailyQuizPage() {
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const [answers, setAnswers] = useState<(number | null)[]>(Array(questions.length).fill(null));
+
+  useEffect(() => {
+    const sync = () => {
+      const u = getStoredUser();
+      if (u && u.role === "student") {
+        setStudent(prev => ({ ...prev, ...(u as Student) }));
+      }
+    };
+    sync();
+    window.addEventListener("tara-auth-change", sync);
+    return () => window.removeEventListener("tara-auth-change", sync);
+  }, []);
 
   const question = questions[currentQ];
   const isCorrect = selected === question.correct;
@@ -75,6 +89,15 @@ export default function DailyQuizPage() {
       setShowHint(false);
     } else {
       setDone(true);
+      // Award XP
+      const earned = (score + (selected === question.correct ? 1 : 0)) * 10;
+      const u = getStoredUser();
+      if (u && u.role === "student") {
+        const studentUser = u as Student;
+        const updated: Student = { ...studentUser, xp: (studentUser.xp || 450) + earned };
+        localStorage.setItem("tara_user", JSON.stringify(updated));
+        window.dispatchEvent(new Event("tara-auth-change"));
+      }
     }
   };
 
@@ -97,7 +120,15 @@ export default function DailyQuizPage() {
         <Navigation role="student" userName={student.name} xp={student.xp} streak={student.streak} level={student.level} />
         <div className="max-w-xl mx-auto px-4 py-12 text-center">
           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 200 }}>
-            <div className="text-8xl mb-5">{pct >= 80 ? "🏆" : pct >= 60 ? "⭐" : "📚"}</div>
+            <div className="w-24 h-24 rounded-3xl mx-auto mb-5 flex items-center justify-center bg-violet-100 text-violet-600 shadow-inner">
+              {pct >= 80 ? (
+                <Trophy size={48} className="text-amber-500" />
+              ) : pct >= 60 ? (
+                <Star size={48} className="text-yellow-500 fill-yellow-500" />
+              ) : (
+                <BookOpen size={48} className="text-violet-600" />
+              )}
+            </div>
             <h1 className="text-3xl font-900 mb-2" style={{ color: "#172554" }}>Quiz Complete!</h1>
             <p className="text-slate-500 mb-6 text-lg">
               You scored {score}/{questions.length} ({pct}%)
@@ -111,12 +142,12 @@ export default function DailyQuizPage() {
             className="grid grid-cols-3 gap-4 mb-8"
           >
             {[
-              { label: "Score", value: `${score}/${questions.length}`, icon: "🎯", color: "#6941F5" },
-              { label: "Accuracy", value: `${pct}%`, icon: "📊", color: "#22C55E" },
-              { label: "XP Earned", value: `+${xpEarned}`, icon: "⚡", color: "#F59E0B" },
+              { label: "Score", value: `${score}/${questions.length}`, icon: <Target size={22} className="text-violet-600 mx-auto mb-1" />, color: "#6941F5" },
+              { label: "Accuracy", value: `${pct}%`, icon: <TrendingUp size={22} className="text-emerald-500 mx-auto mb-1" />, color: "#22C55E" },
+              { label: "XP Earned", value: `+${xpEarned}`, icon: <Zap size={22} className="text-amber-500 fill-amber-500 mx-auto mb-1" />, color: "#F59E0B" },
             ].map(stat => (
               <div key={stat.label} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
-                <div className="text-2xl mb-1">{stat.icon}</div>
+                {stat.icon}
                 <p className="text-lg font-900" style={{ color: stat.color }}>{stat.value}</p>
                 <p className="text-xs text-slate-400">{stat.label}</p>
               </div>
@@ -147,13 +178,13 @@ export default function DailyQuizPage() {
                 onClick={() => openAiraWithTopic("Why was my answer wrong in the daily AI quiz? Can you explain the questions I missed?")}
                 className="text-xs font-700 text-violet-700 hover:text-violet-900 flex items-center gap-1.5 cursor-pointer py-1"
               >
-                <Bot size={14} className="text-violet-600" /> Ask Aira to explain my mistakes
+                <Bot size={14} className="text-violet-600" /> Ask Tara to explain my mistakes
               </button>
               <button
                 onClick={openAiraForQuiz}
                 className="text-xs font-700 text-emerald-700 hover:text-emerald-900 flex items-center gap-1.5 cursor-pointer py-1"
               >
-                <Sparkles size={14} className="text-emerald-600" /> Mini Quiz with Aira
+                <Sparkles size={14} className="text-emerald-600" /> Mini Quiz with Tara
               </button>
             </div>
           </motion.div>
@@ -186,7 +217,9 @@ export default function DailyQuizPage() {
         <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100 mb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-xl">📝</div>
+              <div className="w-10 h-10 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center">
+                <FileQuestion size={20} />
+              </div>
               <div>
                 <h1 className="font-900 text-slate-800">Daily AI Quiz</h1>
                 <p className="text-xs text-slate-400">Question {currentQ + 1} of {questions.length}</p>
@@ -308,7 +341,7 @@ export default function DailyQuizPage() {
                       }}
                       className="mt-2 text-xs font-700 text-violet-700 hover:text-violet-900 flex items-center gap-1.5 cursor-pointer underline"
                     >
-                      <Bot size={13} /> Ask Aira: Why was my answer wrong?
+                      <Bot size={13} /> Ask Tara: Why was my answer wrong?
                     </button>
                   )}
                 </motion.div>
@@ -341,7 +374,13 @@ export default function DailyQuizPage() {
                   className="flex-1 btn-primary py-3 rounded-xl text-sm font-800 flex items-center justify-center gap-2"
                   whileHover={{ scale: 1.04 }}
                 >
-                  {currentQ < questions.length - 1 ? <>Next Question <ArrowRight size={16} /></> : <>See Results 🏆</>}
+                  {currentQ < questions.length - 1 ? (
+                    <>Next Question <ArrowRight size={16} /></>
+                  ) : (
+                    <span className="flex items-center justify-center gap-1.5">
+                      See Results <Trophy size={16} />
+                    </span>
+                  )}
                 </motion.button>
               )}
             </div>

@@ -627,8 +627,16 @@ export default function HomePage() {
             <div>
               <h4 className="font-800 text-slate-700 mb-4">Platform</h4>
               <div className="space-y-2">
-                {["Learn", "Explore Worlds", "AI Tutor", "AI Lab", "Challenges"].map(l => (
-                  <Link key={l} href="#" className="block text-sm text-slate-500 hover:text-violet-600 transition-colors">{l}</Link>
+                {[
+                  { name: "Learn", href: "/learn" },
+                  { name: "Explore Worlds", href: "/explore" },
+                  { name: "AI Tutor", href: "/dashboard/ai-tutor" },
+                  { name: "AI Lab", href: "/dashboard/ai-lab" },
+                  { name: "Challenges", href: "/challenges" },
+                ].map((item) => (
+                  <Link key={item.name} href={item.href} className="block text-sm text-slate-500 hover:text-violet-600 transition-colors">
+                    {item.name}
+                  </Link>
                 ))}
               </div>
             </div>
@@ -636,8 +644,15 @@ export default function HomePage() {
             <div>
               <h4 className="font-800 text-slate-700 mb-4">Community</h4>
               <div className="space-y-2">
-                {["Challenges", "Achievements", "Learning Paths", "Safety Guidelines", "Parent Guide"].map(l => (
-                  <Link key={l} href="#" className="block text-sm text-slate-500 hover:text-violet-600 transition-colors">{l}</Link>
+                {[
+                  { name: "Challenges", href: "/challenges" },
+                  { name: "Achievements", href: "/achievements" },
+                  { name: "Explore Universe", href: "/explore" },
+                  { name: "About TARA", href: "/about" },
+                ].map((item) => (
+                  <Link key={item.name} href={item.href} className="block text-sm text-slate-500 hover:text-violet-600 transition-colors">
+                    {item.name}
+                  </Link>
                 ))}
               </div>
             </div>
@@ -645,8 +660,14 @@ export default function HomePage() {
             <div>
               <h4 className="font-800 text-slate-700 mb-4">About</h4>
               <div className="space-y-2">
-                {["Our Mission", "Team", "Blog", "Privacy Policy", "Terms of Service"].map(l => (
-                  <Link key={l} href="#" className="block text-sm text-slate-500 hover:text-violet-600 transition-colors">{l}</Link>
+                {[
+                  { name: "Our Mission", href: "/about" },
+                  { name: "Student Dashboard", href: "/dashboard" },
+                  { name: "Curriculum", href: "/learn" },
+                ].map((item) => (
+                  <Link key={item.name} href={item.href} className="block text-sm text-slate-500 hover:text-violet-600 transition-colors">
+                    {item.name}
+                  </Link>
                 ))}
               </div>
             </div>

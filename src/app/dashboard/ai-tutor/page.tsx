@@ -5,19 +5,11 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Bot, User, BookOpen, Brain, Lightbulb, Image as ImageIcon, HelpCircle, ArrowLeft, Plus, X } from "lucide-react";
 import Navigation from "@/components/Navigation";
-import { mockStudent, tutorResponses, suggestedQuestions } from "@/lib/mockData";
-import type { ChatMessage } from "@/lib/types";
+import { getStoredUser, DEMO_STUDENT } from "@/lib/auth";
+import type { ChatMessage, Student } from "@/lib/types";
 import ImageComp from "next/image";
 
-const subjects = ["Mathematics", "Science", "English", "Social Science", "Ask Anything"];
-
-function getMockResponse(query: string): string {
-  const q = query.toLowerCase();
-  if (q.includes("linear") || q.includes("equation")) return tutorResponses["linear equation"];
-  if (q.includes("machine learning") || q.includes("ml")) return tutorResponses["machine learning"];
-  if (q.includes("photosynthesis") || q.includes("plant")) return tutorResponses["photosynthesis"];
-  return tutorResponses["default"];
-}
+const subjects = ["Artificial Intelligence", "Machine Learning", "Mathematics", "Science", "Responsible AI", "Ask Anything"];
 
 function renderMarkdown(text: string) {
   const lines = text.split("\n");
@@ -31,27 +23,41 @@ function renderMarkdown(text: string) {
 }
 
 export default function AITutorPage() {
-  const student = mockStudent;
+  const [student, setStudent] = useState<Student>(DEMO_STUDENT);
   const [selectedSubject, setSelectedSubject] = useState("Ask Anything");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: "Hi! I'm **Aira**, your AI Learning Buddy! 🌟\n\nI can help you with AI concepts, math, science, learning missions, and interactive quizzes!\n\nWhat would you like to explore today?",
+      content: "Hi! I'm **Tara**, your AI Learning Buddy! 🌟\n\nI can help you with AI concepts, math, science, learning missions, and interactive quizzes!\n\nWhat would you like to explore today?",
       timestamp: new Date("2026-10-14T10:00:00Z"),
     }
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [newChat, setNewChat] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user && user.role === "student") {
+      setStudent(user as Student);
+    }
+    const sync = () => {
+      const u = getStoredUser();
+      if (u && u.role === "student") {
+        setStudent(u as Student);
+      }
+    };
+    window.addEventListener("tara-auth-change", sync);
+    return () => window.removeEventListener("tara-auth-change", sync);
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const sendMessage = async (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || isTyping) return;
     const now = new Date();
     const userMsg: ChatMessage = { id: `u-${now.getTime()}`, role: "user", content: text, timestamp: now };
     setMessages(prev => [...prev, userMsg]);
@@ -59,7 +65,7 @@ export default function AITutorPage() {
     setIsTyping(true);
 
     try {
-      const res = await fetch("/api/aira/chat", {
+      const res = await fetch("/api/tara/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,14 +84,18 @@ export default function AITutorPage() {
       });
 
       const data = await res.json();
-      const reply = data?.reply || getMockResponse(text);
+      const reply = data?.reply || (data?.error ? `⚠️ ${data.error}` : "I'm having a brief connection delay. Please try asking again.");
       const aiDate = new Date();
       const aiMsg: ChatMessage = { id: `a-${aiDate.getTime()}`, role: "assistant", content: reply, timestamp: aiDate };
       setMessages(prev => [...prev, aiMsg]);
     } catch {
-      const fallbackReply = getMockResponse(text);
       const aiDate = new Date();
-      const aiMsg: ChatMessage = { id: `a-${aiDate.getTime()}`, role: "assistant", content: fallbackReply, timestamp: aiDate };
+      const aiMsg: ChatMessage = {
+        id: `a-${aiDate.getTime()}`,
+        role: "assistant",
+        content: "I could not connect to my learning services right now. Please check your connection and try again!",
+        timestamp: aiDate,
+      };
       setMessages(prev => [...prev, aiMsg]);
     } finally {
       setIsTyping(false);
@@ -97,17 +107,17 @@ export default function AITutorPage() {
     setMessages([{
       id: "welcome-new",
       role: "assistant",
-      content: "Starting a new conversation with Aira! 🚀 What would you like to explore?",
+      content: "Starting a fresh conversation with Tara! 🚀 What concept or challenge would you like to explore?",
       timestamp: welcomeDate,
     }]);
     setInput("");
   };
 
   const quickActions = [
-    { label: "Explain Simply", icon: "💡", prompt: "Explain this concept in simple terms: " },
-    { label: "More Examples", icon: "📚", prompt: "Give me more examples for: " },
-    { label: "Practice Questions", icon: "✏️", prompt: "Give me practice questions on: " },
-    { label: "Show Visual", icon: "🖼️", prompt: "Show me a visual explanation of: " },
+    { label: "Explain Simply", icon: <Lightbulb size={13} className="text-amber-500" />, prompt: "Explain this concept in simple terms: " },
+    { label: "More Examples", icon: <BookOpen size={13} className="text-violet-500" />, prompt: "Give me more examples for: " },
+    { label: "Practice Questions", icon: <Brain size={13} className="text-emerald-500" />, prompt: "Give me practice questions on: " },
+    { label: "Real-World Use", icon: <HelpCircle size={13} className="text-blue-500" />, prompt: "How is this used in the real world: " },
   ];
 
   return (
@@ -138,7 +148,7 @@ export default function AITutorPage() {
                   transition={{ duration: 1.5, repeat: Infinity }}
                 />
               </div>
-              <h2 className="font-800 text-slate-800">Aira</h2>
+              <h2 className="font-800 text-slate-800">Tara</h2>
               <p className="text-xs text-slate-400 mt-0.5">Your AI Learning Buddy</p>
               <motion.button
                 onClick={handleNewChat}
@@ -204,7 +214,9 @@ export default function AITutorPage() {
             {/* Chat header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center text-lg">🤖</div>
+                <div className="w-8 h-8 rounded-xl bg-violet-100 flex items-center justify-center text-violet-600">
+                  <Bot size={18} />
+                </div>
                 <div>
                   <p className="font-700 text-slate-800 text-sm">AI Tutor — {selectedSubject}</p>
                   <p className="text-xs text-green-500 font-600">● Online</p>
@@ -278,10 +290,10 @@ export default function AITutorPage() {
                 <motion.button
                   key={action.label}
                   onClick={() => {
-                    const topic = messages[messages.length - 1]?.content.substring(0, 30) || "linear equations";
+                    const topic = messages[messages.length - 1]?.content.substring(0, 30) || selectedSubject;
                     sendMessage(action.prompt + topic);
                   }}
-                  className="flex items-center gap-1.5 text-xs text-violet-700 bg-violet-50 border border-violet-100 px-3 py-1.5 rounded-xl whitespace-nowrap font-600 hover:bg-violet-100 transition-colors flex-shrink-0"
+                  className="flex items-center gap-1.5 text-xs text-violet-700 bg-violet-50 border border-violet-100 px-3 py-1.5 rounded-xl whitespace-nowrap font-600 hover:bg-violet-100 transition-colors flex-shrink-0 cursor-pointer"
                   whileHover={{ scale: 1.04 }}
                 >
                   {action.icon} {action.label}
@@ -292,11 +304,15 @@ export default function AITutorPage() {
             {/* Suggested questions (on first load) */}
             {messages.length === 1 && (
               <div className="px-4 pb-3 flex flex-wrap gap-2">
-                {suggestedQuestions.slice(0, 3).map(q => (
+                {[
+                  "What is the difference between AI and machine learning?",
+                  "How do neural networks learn from data?",
+                  "Give me a simple real-world example of Computer Vision.",
+                ].map(q => (
                   <motion.button
                     key={q}
                     onClick={() => sendMessage(q)}
-                    className="text-xs text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-all text-left"
+                    className="text-xs text-slate-600 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl hover:border-violet-300 hover:bg-violet-50 transition-all text-left cursor-pointer"
                     whileHover={{ scale: 1.02 }}
                   >
                     {q}

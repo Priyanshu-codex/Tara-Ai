@@ -1,4 +1,4 @@
-// Aira Interactive In-Chat Quiz Engine
+// Tara Interactive In-Chat Quiz Engine
 import type { AiraQuizQuestion, AiraQuizResult } from "./types";
 
 export const airaQuizBank: AiraQuizQuestion[] = [
@@ -87,6 +87,8 @@ export const airaQuizBank: AiraQuizQuestion[] = [
     hint: "It looks at your previous favorites and finds patterns.",
   },
 ];
+
+export const taraQuizBank = airaQuizBank;
 
 export function getQuizQuestionForTopic(topic?: string, excludeIds: string[] = []): AiraQuizQuestion {
   const available = airaQuizBank.filter((q) => !excludeIds.includes(q.id));
