@@ -81,7 +81,7 @@ export interface Mission {
   worldId: string;
   title: string;
   description: string;
-  type: "pattern" | "quiz" | "video" | "experiment" | "challenge";
+  type: "pattern" | "quiz" | "video" | "experiment" | "challenge" | "searching" | "sorting_algo" | "sorting" | "debugging";
   stars: number;
   xpReward: number;
   isCompleted: boolean;

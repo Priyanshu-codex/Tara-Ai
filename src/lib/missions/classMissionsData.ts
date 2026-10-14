@@ -201,6 +201,23 @@ export const classMissionsList: MissionData[] = [
       ],
       evaluationCriteria: "Label all examples correctly so the robot achieves 100% sorting accuracy!",
     },
+    classificationGame: {
+      title: "Toy vs Fruit Sorting Box",
+      objective: "Sort items into the Toy Bin or the Fruit Basket!",
+      categories: [
+        { id: "toys", name: "Toy Bin", color: "#3B82F6", icon: "🧸", description: "Fun things to play with" },
+        { id: "fruits", name: "Fruit Basket", color: "#10B981", icon: "🍎", description: "Healthy yummy snacks" },
+      ],
+      items: [
+        { id: "tb1", name: "Teddy Bear", category: "Toy Bin", emoji: "🧸", description: "Soft plush toy" },
+        { id: "tb2", name: "Sweet Strawberry", category: "Fruit Basket", emoji: "🍓", description: "Fresh juicy berry" },
+        { id: "tb3", name: "Toy Race Car", category: "Toy Bin", emoji: "🚗", description: "Wheeled vehicle toy" },
+        { id: "tb4", name: "Crisp Green Apple", category: "Fruit Basket", emoji: "🍏", description: "Nutritious crunchy fruit" },
+        { id: "tb5", name: "Yellow Banana", category: "Fruit Basket", emoji: "🍌", description: "Peelable fruit snack" },
+        { id: "tb6", name: "Spinning Top", category: "Toy Bin", emoji: "🪀", description: "Spinning play toy" },
+      ],
+      ruleExplanation: "Great job! Toys belong in the toy box for playtime, and fruits belong in the fruit basket for healthy snacks!",
+    },
   },
   {
     id: "c13-m1-4",
@@ -522,6 +539,24 @@ export const classMissionsList: MissionData[] = [
         { id: "t-eco2", title: "Shopping Bag", icon: "🛍️", features: { material: "Polyethylene film" }, expectedClass: "Plastic" },
       ],
       evaluationCriteria: "Classify items accurately so 100% of recyclable materials are saved from landfills!",
+    },
+    classificationGame: {
+      title: "Smart Eco-Sorter Classification",
+      objective: "Sort waste items into Paper, Plastic, or Organic compost bins!",
+      categories: [
+        { id: "paper", name: "Paper Bin", color: "#3B82F6", icon: "📦", description: "Clean paper and cardboard" },
+        { id: "plastic", name: "Plastic Bin", color: "#F59E0B", icon: "🧴", description: "Recyclable bottles and polymers" },
+        { id: "organic", name: "Organic Compost", color: "#10B981", icon: "🍌", description: "Food scraps & decomposable matter" },
+      ],
+      items: [
+        { id: "e1", name: "Cardboard Delivery Box", category: "Paper Bin", emoji: "📦", description: "Wood pulp fiber" },
+        { id: "e2", name: "Plastic Water Bottle", category: "Plastic Bin", emoji: "🧴", description: "PET polymer" },
+        { id: "e3", name: "Banana Peel", category: "Organic Compost", emoji: "🍌", description: "Biodegradable fruit peel" },
+        { id: "e4", name: "Old Newspaper", category: "Paper Bin", emoji: "📰", description: "Printed newsprint" },
+        { id: "e5", name: "Apple Core", category: "Organic Compost", emoji: "🍏", description: "Decomposable organic fruit" },
+        { id: "e6", name: "Plastic Carry Bag", category: "Plastic Bin", emoji: "🛍️", description: "Thin polyethylene film" },
+      ],
+      ruleExplanation: "Paper and plastic go into dry recyclables to prevent deforestation, while organic food waste composts into fertile soil!",
     },
   },
   {
@@ -883,6 +918,12 @@ export const classMissionsList: MissionData[] = [
         },
       ],
     },
+    sortingAlgoGame: {
+      algorithm: "selection",
+      initialArray: [76, 23, 89, 45, 12, 67],
+      title: "Selection & Bubble Sort Efficiency Arena",
+      objective: "Analyze comparison counts vs minimum swaps across quadratic sorting algorithms!",
+    },
   },
   {
     id: "c910-m1-5",
@@ -1176,6 +1217,12 @@ export const classMissionsList: MissionData[] = [
           explanation: "Spot on! Cosine similarity measures the cosine of the angle between two high-dimensional vectors, yielding 1 for identical directions regardless of magnitude.",
         },
       ],
+    },
+    sortingAlgoGame: {
+      algorithm: "insertion",
+      initialArray: [95, 32, 71, 18, 54, 86, 27],
+      title: "Insertion Sort Cache & Inversion Analysis",
+      objective: "Trace adaptive insertion passes on near-sorted vs worst-case inverted data arrays!",
     },
   },
   {

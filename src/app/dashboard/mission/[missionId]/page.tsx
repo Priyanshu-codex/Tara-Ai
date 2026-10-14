@@ -35,6 +35,13 @@ import { recordMissionCompletion, isMissionCompleted, getMissionStars } from "@/
 import ClassSelectionModal from "@/components/ClassSelectionModal";
 import type { Student } from "@/lib/types";
 
+import SearchingAlgorithmGame from "@/components/games/SearchingAlgorithmGame";
+import SortingAlgorithmGame from "@/components/games/SortingAlgorithmGame";
+import PatternPuzzleGame from "@/components/games/PatternPuzzleGame";
+import ClassificationSortingGame from "@/components/games/ClassificationSortingGame";
+import AITrainingSimulatorGame from "@/components/games/AITrainingSimulatorGame";
+import DebuggingLogicGame from "@/components/games/DebuggingLogicGame";
+
 // SVG renderer for geometric pattern shapes
 function ShapeIcon({ shape, color, size = 48 }: { shape: string; color: string; size?: number }) {
   const colorMap: Record<string, string> = {
@@ -487,6 +494,93 @@ function MissionRunner({ params }: { params: Promise<{ missionId: string }> }) {
         ) : (
           /* ── ACTIVE GAMEPLAY INTERFACE ────────────────────────────────────── */
           <div className="space-y-6">
+            {/* TYPE: SEARCHING ALGORITHM GAME (Linear & Binary Search) */}
+            {(mission.type === "searching" || mission.searchingGame) && (
+              <SearchingAlgorithmGame
+                config={mission.searchingGame}
+                onComplete={(score) => triggerCompletion(score)}
+                onAskTara={(prompt) =>
+                  openAiraWithMission({
+                    worldId: mission.worldId,
+                    worldName: mission.worldName,
+                    missionId: mission.id,
+                    missionTitle: mission.title,
+                    instructions: prompt,
+                  })
+                }
+              />
+            )}
+
+            {/* TYPE: SORTING ALGORITHM GAME (Bubble, Selection, Insertion Sort) */}
+            {(mission.type === "sorting_algo" || mission.sortingAlgoGame) && (
+              <SortingAlgorithmGame
+                config={mission.sortingAlgoGame}
+                onComplete={(score) => triggerCompletion(score)}
+                onAskTara={(prompt) =>
+                  openAiraWithMission({
+                    worldId: mission.worldId,
+                    worldName: mission.worldName,
+                    missionId: mission.id,
+                    missionTitle: mission.title,
+                    instructions: prompt,
+                  })
+                }
+              />
+            )}
+
+            {/* TYPE: DEBUGGING & LOGICAL CHALLENGE GAME */}
+            {(mission.type === "debugging" || mission.debuggingGame) && (
+              <DebuggingLogicGame
+                config={
+                  mission.debuggingGame || {
+                    scenario: mission.description,
+                    steps: [
+                      { id: "s1", order: 1, text: "Read input features" },
+                      { id: "s2", order: 2, text: "Normalize values" },
+                      { id: "s3", order: 3, text: "Run model inference" },
+                    ],
+                    correctOrder: ["s1", "s2", "s3"],
+                    hint: "Ensure data is prepared before inference.",
+                  }
+                }
+                onComplete={(score) => triggerCompletion(score)}
+                onAskTara={(prompt) =>
+                  openAiraWithMission({
+                    worldId: mission.worldId,
+                    worldName: mission.worldName,
+                    missionId: mission.id,
+                    missionTitle: mission.title,
+                    instructions: prompt,
+                  })
+                }
+              />
+            )}
+
+            {/* TYPE: CLASSIFICATION / BUCKET SORTING GAME */}
+            {(mission.type === "sorting" || (mission.classificationGame && mission.type !== "video")) && (
+              <ClassificationSortingGame
+                config={
+                  mission.classificationGame || {
+                    categories: [
+                      { id: "cat1", name: "Category A" },
+                      { id: "cat2", name: "Category B" },
+                    ],
+                    items: [],
+                  }
+                }
+                onComplete={(score) => triggerCompletion(score)}
+                onAskTara={(prompt) =>
+                  openAiraWithMission({
+                    worldId: mission.worldId,
+                    worldName: mission.worldName,
+                    missionId: mission.id,
+                    missionTitle: mission.title,
+                    instructions: prompt,
+                  })
+                }
+              />
+            )}
+
             {/* TYPE 1: VIDEO / INTERACTIVE CONCEPT LESSON */}
             {mission.type === "video" && mission.videoLesson && (
               <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
@@ -719,259 +813,42 @@ function MissionRunner({ params }: { params: Promise<{ missionId: string }> }) {
 
             {/* TYPE 2: PATTERN PUZZLE */}
             {mission.type === "pattern" && mission.patternGame && (
-              <div className="space-y-6">
-                {(() => {
-                  const round = mission.patternGame.rounds[patternRound];
-                  const isCorrect = selectedPatternOpt === round.correctId;
-
-                  return (
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-xs font-800 text-violet-700 bg-violet-50 px-3 py-1 rounded-full">
-                          Round {patternRound + 1} of {mission.patternGame.rounds.length}
-                        </span>
-                        <button
-                          onClick={() =>
-                            openAiraWithMission({
-                              worldId: mission.worldId,
-                              worldName: mission.worldName,
-                              missionId: mission.id,
-                              missionTitle: mission.title,
-                              instructions: round.hint,
-                            })
-                          }
-                          className="text-xs font-700 text-violet-600 hover:underline flex items-center gap-1 cursor-pointer"
-                        >
-                          <Bot size={13} /> Ask Tara for Clue
-                        </button>
-                      </div>
-
-                      <h2 className="text-lg sm:text-xl font-900 text-slate-800 mb-6">
-                        Discover the repeating loop and find the missing piece:
-                      </h2>
-
-                      {/* Visual sequence rack */}
-                      <div className="bg-slate-50 rounded-2xl p-4 sm:p-6 mb-8 border border-slate-200 overflow-x-auto">
-                        <div className="flex items-center gap-3 sm:gap-4 min-w-max justify-center py-2">
-                          {round.sequence.map((item, idx) => (
-                            <motion.div
-                              key={item.id}
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ delay: idx * 0.08 }}
-                              className="flex flex-col items-center gap-1.5 p-3 rounded-2xl bg-white border border-slate-200 shadow-2xs"
-                            >
-                              <ShapeIcon shape={item.shape} color={item.color} size={44} />
-                              <span className="text-[10px] text-slate-400 font-600">{item.label}</span>
-                            </motion.div>
-                          ))}
-
-                          <div className="flex items-center text-slate-400 font-900 px-1">➔</div>
-
-                          {/* Mystery box */}
-                          <div className="w-16 h-18 sm:w-20 sm:h-22 rounded-2xl border-2 border-dashed border-violet-400 bg-violet-50/60 flex flex-col items-center justify-center p-2">
-                            {patternSubmitted && selectedPatternOpt ? (
-                              <div className="flex flex-col items-center">
-                                {(() => {
-                                  const opt = round.options.find((o) => o.id === selectedPatternOpt);
-                                  return opt ? (
-                                    <>
-                                      <ShapeIcon shape={opt.shape} color={opt.color} size={36} />
-                                      <span className="text-[9px] font-bold text-violet-700 mt-1">
-                                        {isCorrect ? "Correct!" : "Try Again"}
-                                      </span>
-                                    </>
-                                  ) : null;
-                                })()}
-                              </div>
-                            ) : (
-                              <span className="text-3xl font-black text-violet-500">?</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Options */}
-                      <h4 className="text-xs font-800 text-slate-400 uppercase tracking-wider mb-3">
-                        Choose the matching shape:
-                      </h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-                        {round.options.map((opt) => {
-                          const isSelected = selectedPatternOpt === opt.id;
-                          return (
-                            <motion.button
-                              key={opt.id}
-                              disabled={patternSubmitted && isCorrect}
-                              onClick={() => {
-                                setSelectedPatternOpt(opt.id);
-                                setPatternSubmitted(false);
-                              }}
-                              whileHover={{ scale: 1.04 }}
-                              whileTap={{ scale: 0.96 }}
-                              className={`p-4 rounded-2xl border-2 flex flex-col items-center gap-2 transition-all cursor-pointer ${
-                                isSelected
-                                  ? patternSubmitted
-                                    ? isCorrect
-                                      ? "border-green-500 bg-green-50"
-                                      : "border-red-400 bg-red-50"
-                                    : "border-violet-600 bg-violet-50 shadow-sm"
-                                  : "border-slate-200 bg-white hover:border-violet-300"
-                              }`}
-                            >
-                              <ShapeIcon shape={opt.shape} color={opt.color} size={42} />
-                              <span className="text-xs font-700 text-slate-700">{opt.label}</span>
-                            </motion.button>
-                          );
-                        })}
-                      </div>
-
-                      {/* Explanation / hint display */}
-                      <AnimatePresence>
-                        {patternSubmitted && (
-                          <motion.div
-                            initial={{ opacity: 0, y: 5 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className={`p-4 rounded-2xl mb-6 text-xs sm:text-sm leading-relaxed ${
-                              isCorrect ? "bg-green-50 text-green-800 border border-green-200" : "bg-red-50 text-red-800 border border-red-200"
-                            }`}
-                          >
-                            <div className="font-800 mb-1">{isCorrect ? "🎉 Excellent pattern deduction!" : "❌ Not quite the right shape!"}</div>
-                            {round.ruleExplanation}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-
-                      <div className="flex gap-3">
-                        <button
-                          onClick={() => setShowPatternHint(!showPatternHint)}
-                          className="px-4 py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-amber-700 text-xs font-700 flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Lightbulb size={14} /> {showPatternHint ? round.hint : "Show Hint"}
-                        </button>
-                        <button
-                          onClick={handlePatternSubmit}
-                          disabled={!selectedPatternOpt || (patternSubmitted && isCorrect)}
-                          className="btn-primary flex-1 py-3 rounded-xl text-xs sm:text-sm font-800 disabled:opacity-40 cursor-pointer shadow-md"
-                        >
-                          Submit Answer
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
+              <PatternPuzzleGame
+                config={mission.patternGame}
+                onComplete={(score) => triggerCompletion(score)}
+                onAskTara={(prompt) =>
+                  openAiraWithMission({
+                    worldId: mission.worldId,
+                    worldName: mission.worldName,
+                    missionId: mission.id,
+                    missionTitle: mission.title,
+                    instructions: prompt,
+                  })
+                }
+              />
             )}
 
             {/* TYPE 3: EXPERIMENT / DATA LAB */}
             {mission.type === "experiment" && mission.experimentLab && (
-              <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-900 text-slate-800">{mission.experimentLab.targetLabel}</h2>
-                  <span className="text-xs font-800 text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full uppercase">
-                    Interactive AI Lab
-                  </span>
-                </div>
-
-                {/* Lab Steps Stepper */}
-                <div className="grid grid-cols-3 gap-2 py-1">
-                  <div className={`p-3 rounded-xl text-center text-xs font-700 ${experimentPhase === "collect" ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-500"}`}>
-                    1. Data Preparation
-                  </div>
-                  <div className={`p-3 rounded-xl text-center text-xs font-700 ${experimentPhase === "train" ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-500"}`}>
-                    2. Train Neural Weights
-                  </div>
-                  <div className={`p-3 rounded-xl text-center text-xs font-700 ${experimentPhase === "test" ? "bg-violet-600 text-white" : "bg-slate-100 text-slate-500"}`}>
-                    3. Inference Test
-                  </div>
-                </div>
-
-                {experimentPhase === "collect" && (
-                  <div className="space-y-4">
-                    <p className="text-sm text-slate-600">
-                      Verify each training sample has an accurate label before feeding it into the model:
-                    </p>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {mission.experimentLab.sampleData.map((item) => (
-                        <div key={item.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-2xl">{item.icon}</span>
-                            <div>
-                              <p className="text-xs font-800 text-slate-800">{item.title}</p>
-                              <p className="text-[11px] text-slate-400">Features: {JSON.stringify(item.features).replace(/["{}]/g, "")}</p>
-                            </div>
-                          </div>
-                          <span className="text-xs font-700 bg-white px-2.5 py-1 rounded-lg border border-slate-200 text-violet-700">
-                            {item.correctClass}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        setExperimentPhase("train");
-                        runTrainingSimulation();
-                      }}
-                      className="w-full btn-primary py-3.5 rounded-2xl text-sm font-800 mt-4 cursor-pointer shadow-md"
-                    >
-                      All Data Labeled — Start Model Training 🚀
-                    </button>
-                  </div>
-                )}
-
-                {experimentPhase === "train" && (
-                  <div className="space-y-6 text-center py-8">
-                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="text-5xl mx-auto w-fit">
-                      ⚙️
-                    </motion.div>
-                    <h3 className="font-900 text-lg text-slate-800">
-                      {isTraining ? "Optimizing Model Weights..." : "Training Complete (Loss: 0.04)"}
-                    </h3>
-
-                    <div className="max-w-md mx-auto h-3 bg-slate-100 rounded-full overflow-hidden">
-                      <motion.div className="h-full bg-violet-600 rounded-full" style={{ width: `${trainingProgress}%` }} />
-                    </div>
-                    <p className="text-xs font-700 text-slate-400">{trainingProgress}% Progress</p>
-                  </div>
-                )}
-
-                {experimentPhase === "test" && (
-                  <div className="space-y-6">
-                    <p className="text-sm text-slate-600">
-                      Run inference on unseen test samples to measure validation accuracy:
-                    </p>
-                    <div className="space-y-3">
-                      {mission.experimentLab.testCases.map((tc) => (
-                        <div key={tc.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="text-3xl">{tc.icon}</span>
-                            <div>
-                              <p className="text-xs font-800 text-slate-800">{tc.title}</p>
-                              <p className="text-[11px] text-slate-400">Features: {JSON.stringify(tc.features).replace(/["{}]/g, "")}</p>
-                            </div>
-                          </div>
-                          <span className="text-xs font-800 text-green-700 bg-green-50 px-3 py-1 rounded-full">
-                            Expected: {tc.expectedClass}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {testResult && (
-                      <div className="p-4 rounded-2xl bg-green-50 text-green-800 text-xs font-700 border border-green-200">
-                        {testResult}
-                      </div>
-                    )}
-
-                    <button
-                      onClick={handleTestInference}
-                      className="w-full btn-primary py-3.5 rounded-2xl text-sm font-800 cursor-pointer shadow-md"
-                    >
-                      Run Model Inference & Finish Experiment
-                    </button>
-                  </div>
-                )}
-              </div>
+              <AITrainingSimulatorGame
+                config={{
+                  title: mission.experimentLab.targetLabel,
+                  sampleData: mission.experimentLab.sampleData,
+                  classes: mission.experimentLab.classes,
+                  testCases: mission.experimentLab.testCases,
+                  evaluationCriteria: mission.experimentLab.evaluationCriteria,
+                }}
+                onComplete={(score) => triggerCompletion(score)}
+                onAskTara={(prompt) =>
+                  openAiraWithMission({
+                    worldId: mission.worldId,
+                    worldName: mission.worldName,
+                    missionId: mission.id,
+                    missionTitle: mission.title,
+                    instructions: prompt,
+                  })
+                }
+              />
             )}
 
             {/* TYPE 4: QUIZ */}
