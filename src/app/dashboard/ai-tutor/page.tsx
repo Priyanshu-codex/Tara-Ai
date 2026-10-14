@@ -38,7 +38,7 @@ export default function AITutorPage() {
       id: "welcome",
       role: "assistant",
       content: "Hi! I'm TARA, your AI learning assistant! 👋\n\nI can help you with **any subject** — Math, Science, English, AI concepts, and more!\n\nWhat would you like to learn today?",
-      timestamp: new Date(),
+      timestamp: new Date("2026-10-14T10:00:00Z"),
     }
   ]);
   const [input, setInput] = useState("");
@@ -52,23 +52,26 @@ export default function AITutorPage() {
 
   const sendMessage = async (text: string) => {
     if (!text.trim()) return;
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: text, timestamp: new Date() };
+    const now = new Date();
+    const userMsg: ChatMessage = { id: `u-${now.getTime()}`, role: "user", content: text, timestamp: now };
     setMessages(prev => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
-    await new Promise(r => setTimeout(r, 1000 + Math.random() * 800));
+    await new Promise(r => setTimeout(r, 1200));
     const response = getMockResponse(text);
-    const aiMsg: ChatMessage = { id: (Date.now() + 1).toString(), role: "assistant", content: response, timestamp: new Date() };
+    const aiDate = new Date();
+    const aiMsg: ChatMessage = { id: `a-${aiDate.getTime()}`, role: "assistant", content: response, timestamp: aiDate };
     setMessages(prev => [...prev, aiMsg]);
     setIsTyping(false);
   };
 
   const handleNewChat = () => {
+    const welcomeDate = new Date();
     setMessages([{
       id: "welcome-new",
       role: "assistant",
       content: "Starting a new conversation! 🚀 What would you like to explore?",
-      timestamp: new Date(),
+      timestamp: welcomeDate,
     }]);
     setInput("");
   };

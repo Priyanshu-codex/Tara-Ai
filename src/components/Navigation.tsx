@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Bell, Menu, X, Star, Flame, ChevronDown,
   Home, BookOpen, Globe, Trophy, LogOut, User,
-  Settings, BarChart2, Users, ClipboardList, HelpCircle,
+  Settings, BarChart2,
   type LucideIcon
 } from "lucide-react";
 import type { UserRole } from "@/lib/types";
@@ -24,7 +24,6 @@ const publicLinks = [
   { label: "Home", href: "/" },
   { label: "Learn", href: "/learn" },
   { label: "Explore", href: "/explore" },
-  { label: "For Teachers", href: "/teacher" },
   { label: "About", href: "/about" },
 ];
 
@@ -34,14 +33,6 @@ const studentLinks: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Explore", href: "/explore", icon: Globe },
   { label: "Challenges", href: "/challenges", icon: Star },
   { label: "Achievements", href: "/achievements", icon: Trophy },
-];
-
-const teacherLinks: { label: string; href: string; icon: LucideIcon }[] = [
-  { label: "Dashboard", href: "/teacher/dashboard", icon: Home },
-  { label: "My Classes", href: "/teacher/classes", icon: Users },
-  { label: "Students", href: "/teacher/students", icon: User },
-  { label: "Assignments", href: "/teacher/assignments", icon: ClipboardList },
-  { label: "Analytics", href: "/teacher/analytics", icon: BarChart2 },
 ];
 
 export default function Navigation({ role = null, userName, xp = 0, streak = 0, level = 1 }: NavProps) {
@@ -58,11 +49,13 @@ export default function Navigation({ role = null, userName, xp = 0, streak = 0, 
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  useEffect(() => {
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
     setMobileOpen(false);
-  }, [pathname]);
+  }
 
-  const links = role === "student" ? studentLinks : role === "teacher" ? teacherLinks : publicLinks;
+  const links = role === "student" ? studentLinks : publicLinks;
   const isActive = (href: string) => pathname === href || pathname?.startsWith(href + "/");
 
   return (
@@ -77,7 +70,7 @@ export default function Navigation({ role = null, userName, xp = 0, streak = 0, 
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href={role === "teacher" ? "/teacher/dashboard" : role === "student" ? "/dashboard" : "/"} className="flex items-center gap-2 flex-shrink-0">
+            <Link href={role === "student" ? "/dashboard" : "/"} className="flex items-center gap-2 flex-shrink-0">
               <motion.div
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-lg font-black text-white shadow-md"
                 style={{ background: "linear-gradient(135deg, #6941F5, #4C2AD9)" }}
@@ -214,56 +207,7 @@ export default function Navigation({ role = null, userName, xp = 0, streak = 0, 
                 </div>
               )}
 
-              {role === "teacher" && (
-                <div className="hidden sm:flex items-center gap-2">
-                  <motion.button
-                    className="relative p-2 rounded-xl text-slate-500 hover:bg-violet-50 hover:text-violet-600 transition-colors"
-                    whileHover={{ scale: 1.05 }}
-                  >
-                    <Bell size={20} />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
-                  </motion.button>
 
-                  <div className="relative">
-                    <motion.button
-                      onClick={() => setProfileOpen(!profileOpen)}
-                      className="flex items-center gap-2 bg-violet-50 px-3 py-1.5 rounded-xl border border-violet-100 hover:bg-violet-100 transition-colors"
-                    >
-                      <div className="w-6 h-6 rounded-full bg-emerald-200 flex items-center justify-center text-xs font-700 text-emerald-700">
-                        {userName?.[0] || "T"}
-                      </div>
-                      <span className="text-xs font-700 text-violet-700 max-w-[80px] truncate">{userName || "Ms. Priya"}</span>
-                      <ChevronDown size={12} className="text-violet-500" />
-                    </motion.button>
-
-                    <AnimatePresence>
-                      {profileOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -8, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -8, scale: 0.95 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50"
-                        >
-                          <Link href="/teacher/profile" className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 transition-colors text-sm text-slate-600">
-                            <User size={16} /> Profile
-                          </Link>
-                          <Link href="/teacher/settings" className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 transition-colors text-sm text-slate-600">
-                            <Settings size={16} /> Settings
-                          </Link>
-                          <Link href="/teacher/help" className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 transition-colors text-sm text-slate-600">
-                            <HelpCircle size={16} /> Help
-                          </Link>
-                          <hr className="my-1 border-slate-100" />
-                          <Link href="/" className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-500">
-                            <LogOut size={16} /> Sign Out
-                          </Link>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </div>
-              )}
 
               {/* Mobile Menu Toggle */}
               <motion.button

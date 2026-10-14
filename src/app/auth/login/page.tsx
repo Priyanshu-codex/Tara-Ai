@@ -4,10 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, BookOpen, GraduationCap } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight, AlertCircle, BookOpen, Shield } from "lucide-react";
 import Image from "next/image";
 
-type Role = "student" | "teacher";
+type Role = "student" | "admin";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -27,8 +27,15 @@ export default function LoginPage() {
     setLoading(true);
     await new Promise(r => setTimeout(r, 1200));
     setLoading(false);
-    localStorage.setItem("tara_user", JSON.stringify({ email: form.email, role, name: role === "teacher" ? "Ms. Priya" : "Aarav Sharma" }));
-    router.push(role === "teacher" ? "/teacher/dashboard" : "/dashboard");
+    localStorage.setItem(
+      "tara_user",
+      JSON.stringify({
+        email: form.email,
+        role,
+        name: role === "admin" ? "Platform Administrator" : "Aarav Sharma",
+      })
+    );
+    router.push("/dashboard");
   };
 
   return (
@@ -73,7 +80,7 @@ export default function LoginPage() {
 
           {/* Role Selector */}
           <div className="flex rounded-2xl overflow-hidden border-2 border-violet-100 mb-8 p-1 bg-violet-50">
-            {(["student", "teacher"] as Role[]).map((r) => (
+            {(["student", "admin"] as Role[]).map((r) => (
               <motion.button
                 key={r}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-700 text-sm transition-all ${
@@ -82,8 +89,8 @@ export default function LoginPage() {
                 onClick={() => setRole(r)}
                 whileTap={{ scale: 0.97 }}
               >
-                {r === "student" ? <BookOpen size={16} /> : <GraduationCap size={16} />}
-                {r === "student" ? "Student" : "Teacher"}
+                {r === "student" ? <BookOpen size={16} /> : <Shield size={16} />}
+                {r === "student" ? "Student" : "Administrator"}
               </motion.button>
             ))}
           </div>
@@ -92,7 +99,7 @@ export default function LoginPage() {
             {/* Demo hint */}
             <div className="bg-violet-50 border border-violet-100 rounded-xl px-4 py-3">
               <p className="text-xs text-violet-600 font-600">
-                🎯 Demo Mode: Enter any email & password to sign in as {role === "student" ? "Aarav (Student)" : "Ms. Priya (Teacher)"}
+                🎯 Demo Mode: Enter any email & password to sign in as {role === "student" ? "Aarav (Student)" : "Platform Administrator"}
               </p>
             </div>
 
@@ -103,7 +110,7 @@ export default function LoginPage() {
                 <Mail size={18} className="text-slate-400" />
                 <input
                   type="email"
-                  placeholder={role === "student" ? "aarav@school.edu" : "priya@school.edu"}
+                  placeholder={role === "student" ? "aarav@school.edu" : "admin@tara.edu"}
                   value={form.email}
                   onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                   className="flex-1 outline-none text-sm text-slate-700 placeholder-slate-300 bg-transparent"

@@ -8,7 +8,7 @@ import {
   ArrowRight, Play, BookOpen, Beaker, Globe, Trophy,
   Star, Zap, Users, Clock, ChevronRight, Sparkles,
   Brain, Gamepad2, FlaskConical, Target, MessageSquare,
-  TrendingUp, Shield, GraduationCap, CheckCircle2
+  TrendingUp, Shield, CheckCircle2
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
 
@@ -517,97 +517,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── For Teachers ─────────────────────────────────────────────────────── */}
-      <section className="py-16 px-4 sm:px-6" style={{ background: "linear-gradient(135deg, #4C2AD9 0%, #6941F5 100%)" }}>
-        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <div className="inline-flex items-center gap-2 bg-white/20 text-white px-4 py-2 rounded-full text-sm font-700 mb-6">
-              <GraduationCap size={14} /> For Teachers
-            </div>
-            <h2 className="text-4xl font-900 text-white mb-4">
-              Empower your classroom
-              <br />with AI insights
-            </h2>
-            <p className="text-violet-200 mb-8 text-lg">
-              Track every student&apos;s progress, identify learning gaps, assign custom missions, and get AI-powered recommendations — all from one dashboard.
-            </p>
-
-            <div className="space-y-4 mb-8">
-              {[
-                "Real-time student progress tracking",
-                "Concept mastery analysis",
-                "Assign missions to your class",
-                "AI-powered learning gap detection",
-                "Printable reports and certificates",
-              ].map((item) => (
-                <div key={item} className="flex items-center gap-3 text-white">
-                  <CheckCircle2 size={20} className="text-green-300 flex-shrink-0" />
-                  <span className="font-600">{item}</span>
-                </div>
-              ))}
-            </div>
-
-            <Link href="/teacher">
-              <motion.button
-                className="bg-white text-violet-700 font-800 px-7 py-3.5 rounded-2xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-shadow"
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-              >
-                Teacher Dashboard <ArrowRight size={18} />
-              </motion.button>
-            </Link>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-white/10 backdrop-blur-sm rounded-3xl p-6 border border-white/20"
-          >
-            <p className="text-white/70 text-sm font-600 mb-4">CLASS OVERVIEW — 8A</p>
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              {[
-                { val: "32", label: "Students", icon: "👥" },
-                { val: "78%", label: "Avg Completion", icon: "✅" },
-                { val: "Level 4", label: "Average Level", icon: "⭐" },
-              ].map((s) => (
-                <div key={s.label} className="bg-white/15 rounded-2xl p-4 text-center">
-                  <div className="text-2xl mb-1">{s.icon}</div>
-                  <p className="text-xl font-900 text-white">{s.val}</p>
-                  <p className="text-xs text-white/70">{s.label}</p>
-                </div>
-              ))}
-            </div>
-            {/* Concept Mastery Preview */}
-            <div className="space-y-3">
-              {[
-                { name: "AI Basics", pct: 92, color: "#A78BFA" },
-                { name: "Machine Learning", pct: 76, color: "#60A5FA" },
-                { name: "Computer Vision", pct: 68, color: "#34D399" },
-              ].map((c) => (
-                <div key={c.name}>
-                  <div className="flex justify-between text-xs text-white/80 mb-1 font-600">
-                    <span>{c.name}</span><span>{c.pct}%</span>
-                  </div>
-                  <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                    <motion.div
-                      className="h-full rounded-full"
-                      style={{ background: c.color }}
-                      initial={{ width: 0 }}
-                      whileInView={{ width: `${c.pct}%` }}
-                      transition={{ duration: 1, ease: "easeOut" }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* ── Testimonials ─────────────────────────────────────────────────────── */}
       <section className="py-16 px-4 sm:px-6">
@@ -689,12 +598,12 @@ export default function HomePage() {
                   Start Learning Free <ArrowRight size={18} />
                 </motion.button>
               </Link>
-              <Link href="/teacher">
+              <Link href="/explore">
                 <motion.button
                   className="border-2 border-white/50 text-white font-700 px-8 py-4 rounded-2xl text-base hover:bg-white/10 transition-colors"
                   whileHover={{ scale: 1.04 }}
                 >
-                  I&apos;m a Teacher
+                  Explore Worlds
                 </motion.button>
               </Link>
             </div>
@@ -724,9 +633,9 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h4 className="font-800 text-slate-700 mb-4">For Teachers</h4>
+              <h4 className="font-800 text-slate-700 mb-4">Community</h4>
               <div className="space-y-2">
-                {["Teacher Dashboard", "My Classes", "Assignments", "Analytics", "Resources"].map(l => (
+                {["Challenges", "Achievements", "Learning Paths", "Safety Guidelines", "Parent Guide"].map(l => (
                   <Link key={l} href="#" className="block text-sm text-slate-500 hover:text-violet-600 transition-colors">{l}</Link>
                 ))}
               </div>

@@ -6,14 +6,13 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Eye, EyeOff, Mail, Lock, User, School, ArrowRight,
-  CheckCircle2, AlertCircle, BookOpen, GraduationCap
+  CheckCircle2, AlertCircle, BookOpen, Shield
 } from "lucide-react";
 import Image from "next/image";
 
-type Role = "student" | "teacher";
+type Role = "student" | "admin";
 
 const grades = ["Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12"];
-const subjects = ["Mathematics", "Science", "English", "Computer Science", "Social Studies", "AI & Technology"];
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -30,7 +29,6 @@ export default function SignUpPage() {
     password: "",
     grade: "",
     school: "",
-    subject: "",
   });
 
   const update = (field: string, value: string) => {
@@ -44,7 +42,6 @@ export default function SignUpPage() {
     if (!form.email.includes("@")) errs.email = "Enter a valid email address";
     if (form.password.length < 6) errs.password = "Password must be at least 6 characters";
     if (role === "student" && !form.grade) errs.grade = "Please select your class";
-    if (role === "teacher" && !form.subject) errs.subject = "Please select your subject";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -58,7 +55,7 @@ export default function SignUpPage() {
     setSuccess(true);
     localStorage.setItem("tara_user", JSON.stringify({ ...form, role }));
     await new Promise(r => setTimeout(r, 1500));
-    router.push(role === "teacher" ? "/teacher/dashboard" : "/dashboard");
+    router.push("/dashboard");
   };
 
   if (success) {
@@ -165,7 +162,7 @@ export default function SignUpPage() {
 
           {/* Role selector */}
           <div className="flex rounded-2xl overflow-hidden border-2 border-violet-100 mb-8 p-1 bg-violet-50">
-            {(["student", "teacher"] as Role[]).map((r) => (
+            {(["student", "admin"] as Role[]).map((r) => (
               <motion.button
                 key={r}
                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-700 text-sm transition-all ${
@@ -174,8 +171,8 @@ export default function SignUpPage() {
                 onClick={() => setRole(r)}
                 whileTap={{ scale: 0.97 }}
               >
-                {r === "student" ? <BookOpen size={16} /> : <GraduationCap size={16} />}
-                {r === "student" ? "Student" : "Teacher"}
+                {r === "student" ? <BookOpen size={16} /> : <Shield size={16} />}
+                {r === "student" ? "Student" : "Administrator"}
               </motion.button>
             ))}
           </div>
@@ -241,7 +238,7 @@ export default function SignUpPage() {
 
             {/* Role-specific fields */}
             <AnimatePresence mode="wait">
-              {role === "student" ? (
+              {role === "student" && (
                 <motion.div
                   key="student-grade"
                   initial={{ opacity: 0, height: 0 }}
@@ -263,29 +260,6 @@ export default function SignUpPage() {
                     </select>
                   </div>
                   {errors.grade && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} />{errors.grade}</p>}
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="teacher-subject"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
-                  <label className="block text-sm font-700 text-slate-600 mb-1.5">Subject</label>
-                  <div className={`flex items-center gap-3 border-2 rounded-xl px-4 py-3 transition-colors ${
-                    errors.subject ? "border-red-300 bg-red-50" : "border-slate-200 bg-white focus-within:border-violet-400"
-                  }`}>
-                    <BookOpen size={18} className="text-slate-400" />
-                    <select
-                      value={form.subject}
-                      onChange={e => update("subject", e.target.value)}
-                      className="flex-1 outline-none text-sm text-slate-700 bg-transparent"
-                    >
-                      <option value="">Select your subject</option>
-                      {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                  {errors.subject && <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} />{errors.subject}</p>}
                 </motion.div>
               )}
             </AnimatePresence>
