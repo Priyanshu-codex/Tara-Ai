@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -9,7 +9,9 @@ import {
   Play, ArrowRight, Lock, CheckCircle2, TrendingUp, Target
 } from "lucide-react";
 import Navigation from "@/components/Navigation";
-import { mockStudent, worlds, learningActivities, recentAchievements } from "@/lib/mockData";
+import { worlds, learningActivities, recentAchievements } from "@/lib/mockData";
+import { getStoredUser, loginAsDemo, logout, DEMO_STUDENT } from "@/lib/auth";
+import type { Student } from "@/lib/types";
 
 function XPBar({ current, max }: { current: number; max: number }) {
   const pct = Math.min((current / max) * 100, 100);
@@ -109,7 +111,22 @@ const statCardVariants = {
 };
 
 export default function StudentDashboard() {
-  const student = mockStudent;
+  const [student, setStudent] = useState<Student>(DEMO_STUDENT);
+  const [isDemo, setIsDemo] = useState(true);
+
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user && user.role === "student") {
+      setStudent(user as Student);
+      setIsDemo(Boolean(user.isDemo));
+    } else {
+      // Auto-fallback to Demo Student Account for immediate seamless testing
+      const demo = loginAsDemo();
+      setStudent(demo);
+      setIsDemo(true);
+    }
+  }, []);
+
   const xpNeeded = 500;
   const currentXP = student.xp;
 
@@ -122,9 +139,49 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen" style={{ background: "#EAF5FF" }}>
-      <Navigation role="student" userName={student.name} xp={student.xp} streak={student.streak} level={student.level} />
+      <Navigation
+        role="student"
+        userName={student.name}
+        xp={student.xp}
+        streak={student.streak}
+        level={student.level}
+        isDemo={isDemo}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        {/* ── Demo Mode Indicator Banner ─────────────────────────────────── */}
+        {isDemo && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-6 bg-gradient-to-r from-amber-50 via-amber-100/80 to-amber-50 border border-amber-200/90 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-lg shadow-sm flex-shrink-0">
+                ⚡
+              </div>
+              <div>
+                <p className="text-xs font-900 text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                  Demo Student Active
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                </p>
+                <p className="text-xs text-amber-700">
+                  Exploring TARA as <strong>{student.name}</strong> ({student.class}) • Full access to learning worlds, AI Tutor, and quizzes. Data is isolated to this session.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                logout();
+                window.location.href = "/auth/login";
+              }}
+              className="text-xs font-800 text-amber-900 hover:text-black bg-white hover:bg-amber-100/50 px-4 py-2 rounded-xl border border-amber-300 transition-colors shadow-2xs cursor-pointer flex-shrink-0"
+            >
+              Exit Demo Mode
+            </button>
+          </motion.div>
+        )}
+
         {/* ── Greeting & Stats ──────────────────────────────────────────────── */}
         <div className="grid lg:grid-cols-3 gap-5 mb-6">
           {/* Welcome card */}

@@ -10,6 +10,7 @@ export interface User {
   avatar?: string;
   class?: string;
   school?: string;
+  isDemo?: boolean;
 }
 
 export interface Student extends User {

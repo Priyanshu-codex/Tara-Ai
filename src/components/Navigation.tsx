@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Bell, Menu, X, Star, Flame, ChevronDown,
   Home, BookOpen, Globe, Trophy, LogOut, User,
-  Settings, BarChart2,
+  Settings, BarChart2, Zap,
   type LucideIcon
 } from "lucide-react";
 import type { UserRole } from "@/lib/types";
+import { logout, isDemoSession } from "@/lib/auth";
 
 interface NavProps {
   role?: UserRole | null;
@@ -18,6 +19,7 @@ interface NavProps {
   xp?: number;
   streak?: number;
   level?: number;
+  isDemo?: boolean;
 }
 
 const publicLinks = [
@@ -35,13 +37,21 @@ const studentLinks: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Achievements", href: "/achievements", icon: Trophy },
 ];
 
-export default function Navigation({ role = null, userName, xp = 0, streak = 0, level = 1 }: NavProps) {
+export default function Navigation({ role = null, userName, xp = 0, streak = 0, level = 1, isDemo }: NavProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [demoActive, setDemoActive] = useState(isDemo ?? false);
+
+  useEffect(() => {
+    setDemoActive(isDemo !== undefined ? isDemo : isDemoSession());
+    const onAuthChange = () => setDemoActive(isDemoSession());
+    window.addEventListener("tara-auth-change", onAuthChange);
+    return () => window.removeEventListener("tara-auth-change", onAuthChange);
+  }, [isDemo]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -142,6 +152,14 @@ export default function Navigation({ role = null, userName, xp = 0, streak = 0, 
 
               {role === "student" && (
                 <div className="hidden sm:flex items-center gap-2">
+                  {/* Demo indicator */}
+                  {demoActive && (
+                    <div className="flex items-center gap-1.5 bg-amber-50 text-amber-700 px-2.5 py-1 rounded-xl border border-amber-200 text-xs font-800 shadow-sm" title="Exploring with Demo Student Account">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span>Demo Mode</span>
+                    </div>
+                  )}
+
                   {/* Notifications */}
                   <motion.button
                     className="relative p-2 rounded-xl text-slate-500 hover:bg-violet-50 hover:text-violet-600 transition-colors"
@@ -185,21 +203,32 @@ export default function Navigation({ role = null, userName, xp = 0, streak = 0, 
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -8, scale: 0.95 }}
                           transition={{ duration: 0.15 }}
-                          className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50"
+                          className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-50 overflow-hidden"
                         >
+                          {demoActive && (
+                            <div className="px-4 py-2 bg-amber-50/90 border-b border-amber-100 mb-1">
+                              <p className="text-xs font-800 text-amber-800 flex items-center gap-1">
+                                <Zap size={13} className="text-amber-500 fill-amber-500" /> Demo Account
+                              </p>
+                              <p className="text-[10px] text-amber-600 font-600">Sample Student • Aarav Sharma</p>
+                            </div>
+                          )}
                           <Link href="/profile" className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 transition-colors text-sm text-slate-600">
                             <User size={16} /> Profile
                           </Link>
                           <Link href="/progress" className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 transition-colors text-sm text-slate-600">
                             <BarChart2 size={16} /> My Progress
                           </Link>
-                          <Link href="/settings" className="flex items-center gap-3 px-4 py-2.5 hover:bg-violet-50 transition-colors text-sm text-slate-600">
-                            <Settings size={16} /> Settings
-                          </Link>
                           <hr className="my-1 border-slate-100" />
-                          <Link href="/" className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-500">
-                            <LogOut size={16} /> Sign Out
-                          </Link>
+                          <button
+                            onClick={() => {
+                              logout();
+                              window.location.href = "/";
+                            }}
+                            className="w-full text-left flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 transition-colors text-sm text-red-500 font-600"
+                          >
+                            <LogOut size={16} /> {demoActive ? "Exit Demo Account" : "Sign Out"}
+                          </button>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -344,9 +373,21 @@ export default function Navigation({ role = null, userName, xp = 0, streak = 0, 
 
                 {role && (
                   <div className="mt-6 pt-4 border-t border-slate-100">
-                    <Link href="/" className="flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-600">
-                      <LogOut size={18} /> Sign Out
-                    </Link>
+                    {demoActive && (
+                      <div className="mb-3 px-3 py-2 bg-amber-50 rounded-xl text-xs font-700 text-amber-800 border border-amber-200 flex items-center justify-between">
+                        <span>⚡ Demo Mode</span>
+                        <span className="text-amber-600 font-600 text-[11px]">Aarav Sharma</span>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => {
+                        logout();
+                        window.location.href = "/";
+                      }}
+                      className="w-full text-left flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors text-sm font-600"
+                    >
+                      <LogOut size={18} /> {demoActive ? "Exit Demo Account" : "Sign Out"}
+                    </button>
                   </div>
                 )}
               </div>
